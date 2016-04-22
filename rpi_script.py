@@ -21,13 +21,14 @@ class MeshBee:
 
     def to_at_mode(self):
         """to_at_mode Go to AT mode"""
-        self.meshbee.write(b'+++\r')
+        self.meshbee.write(unicode('+++\r'))
         self.meshbee.flush()
         result = self.meshbee.readline()
-        if result != "" and result != "":
-            return False
-        self.current_mode = "AT"
-        return True
+        if "Error, invalid command" in result or "Enter AT Mode" in result:
+	    self.current_mode = "AT"
+            self.meshbee.readline()
+	    return True
+        return False
 
     def to_data_mode(self):
         """to_data_mode Got to DATA mode"""
@@ -36,24 +37,28 @@ class MeshBee:
         if self.current_mode == "":
             print("UNKNOWN MODE in to_data_mode")
             return False
-        self.meshbee.write(b'ATDT\r')
+        self.meshbee.write(unicode('ATDT\r'))
         self.meshbee.flush()
         result = self.meshbee.readline()
-        if result != "" and result != "":
-            return False
-        self.current_mode = "DATA"
-        return True
+        if "Enter Data Mode" in result:
+            result = self.meshbee.readline()
+            if "OK" in result:
+                self.meshbee.readline()
+                self.current_mode = "DATA"
+                return True
+        return False
 
     def print_information(self):
         """print_information Print the information of the node"""
         if not self.check_at_mode():
             return
         result = []
-        self.meshbee.write(b'ATIF\r')
+        self.meshbee.write(unicode('ATIF\r'))
         self.meshbee.flush()
         reading = self.meshbee.readline()
         while reading != "":
             result.append(reading)
+	    reading = self.meshbee.readline()
         print("INFORMATION ABOUT THE NODE")
         print("".join(result))
 
@@ -61,7 +66,7 @@ class MeshBee:
         """print_nodes Print all the nodes in the network"""
         if not self.check_at_mode():
             return
-        self.meshbee.write(b'ATLA\r')
+        self.meshbee.write(unicode('ATLA\r'))
         self.meshbee.flush()
         reading = self.meshbee.readline()
         result = []
@@ -101,7 +106,8 @@ class MeshBee:
             if not self.to_data_mode():
                 print("Problem going to data mode")
                 return
-        self.meshbee.write(message)
+        self.meshbee.write(unicode(message))
+        self.meshbee.flush()
 
 
 
