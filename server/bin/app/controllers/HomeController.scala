@@ -88,18 +88,20 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
   /* Receives a measure from a sensor */
   def measureData(id : String, dataType : String, data : Float) = Action {
     val currentTime = java.util.Calendar.getInstance.getTime
+    var temp = 0.0
 
-    if (dataType == "TEMP"){
+    if (dataType contains "TEMP"){
         if (data != 65532){
-          var temp = -46.85 + 175.72 * data / 65536.0
+          temp = -46.85 + 175.72 * data / 65536.0
           addNewMeasure(id + dataType, temp, currentTime)
         }
-    } else if (dataType == "HUMI") {
+    } else if (dataType contains "HUMI") {
         if (data != 65532){
-          var temp = -6.0 + 125 * data / 65536.0
+          temp = -6.0 + 125 * data / 65536.0
           addNewMeasure(id + dataType, temp, currentTime)
         }
     } else {
+        temp = data
         addNewMeasure(id + dataType, data, currentTime)
     }
     setClass(id + dataType, dataType)
@@ -109,7 +111,7 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     /* Send the update to connected users */
     for (actor <- MyWebSocketActor.getActors(id + dataType)){
       if (actor != null) {
-        actor ! (currentTime.getTime() + " " + data)
+        actor ! (currentTime.getTime() + " " + temp)
       }
     }
 
@@ -207,7 +209,7 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
 
   def updateSensors(ids : String) = Action {
     for(id <- getSensors){
-      if (ids contains id) {
+      if (ids contains id.substring(0, id.length() - 4)) {
         setStatus(id, SensorState.Active)
       } else {
         setStatus(id, SensorState.Disconnected)

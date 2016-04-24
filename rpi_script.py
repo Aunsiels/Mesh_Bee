@@ -84,6 +84,7 @@ class MeshBee:
         reading = self.meshbee.readline()
         if reading == "":
             print("No node detected on the network")
+            return "NONODE"
         else:
             if not "Node resp" in reading:
                 print("Problem Node resp")
@@ -125,22 +126,30 @@ class MeshBee:
                 print("Problem going to data mode")
                 return
         reading = self.meshbee.readline()
+        if len(reading) < 20:
+            return
         data_type = reading[0:4]
         id_sensor = reading[4:4+16] #The mac address
         data = reading[4+16:]
-        urllib2.urlopen("http://localhost:9000/measuredata?id=" + id_sensor  +
-                        "&dataType=" + data_type  + "&data=" + data)
+        tosend = "http://localhost:9000/measuredata?id=" + id_sensor
+        tosend = tosend + "&dataType=" + data_type  + "&data=" + data
+        print(tosend)
+        f = urllib2.urlopen(tosend)
+        f.close()
 
 def main():
     """main The main loop"""
     last_time = time.time()
     bee = MeshBee()
     while True:
-        if time.time() - last_time > 2:
+        if time.time() - last_time > 30:
+            print("Read node")
             nodes = bee.print_nodes()
-            urllib2.urlopen("http://localhost:9000/updatesensors?s=" + nodes)
+            if nodes != "":
+		print("Sending update")
+		urllib2.urlopen("http://localhost:9000/updatesensors?s=" + nodes)
+            last_time = time.time()
         bee.read_sensors()
-        last_time = time.time()
     return 0
 
 if __name__ == "__main__":
