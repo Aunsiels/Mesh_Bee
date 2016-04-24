@@ -90,12 +90,12 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     val currentTime = java.util.Calendar.getInstance.getTime
 
     if (dataType == "TEMP"){
-        if (data != 65535){
+        if (data != 65532){
           var temp = -46.85 + 175.72 * data / 65536.0
           addNewMeasure(id + dataType, temp, currentTime)
         }
     } else if (dataType == "HUMI") {
-        if (data != 65535){
+        if (data != 65532){
           var temp = -6.0 + 125 * data / 65536.0
           addNewMeasure(id + dataType, temp, currentTime)
         }
