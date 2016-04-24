@@ -37,6 +37,7 @@ void arduino_setup(void)
 #ifdef TARGET_ROU
     setNodeState(E_MODE_MCU);
 	init_humidity();
+#endif
 
     suli_analog_init(&temp_pin, TEMP);
 }
@@ -52,10 +53,12 @@ void arduino_loop(void)
     tsApiSpec apiSpec;
 
 	hum = read_temperature();
-
+    uint32 high = (uint32)(ZPS_u64AplZdoGetIeeeAddr() >> 32);
+	uint32 low  = (uint32)(ZPS_u64AplZdoGetIeeeAddr());
+	
     sprintf(tmp, "TEMP%08x%08x%d\r\n",
-                (uint32)(ZPS_u64AplZdoGetIeeeAddr() >> 32),
-                (uint32)(ZPS_u64AplZdoGetIeeeAddr()),
+                high,
+                low,
                 hum);
     PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp));
 
