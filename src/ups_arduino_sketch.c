@@ -37,7 +37,7 @@ void arduino_setup(void)
 #ifdef TARGET_ROU
     setNodeState(E_MODE_MCU);
 	init_humidity();
-#endif
+
     suli_analog_init(&temp_pin, TEMP);
 }
 
@@ -50,10 +50,13 @@ void arduino_loop(void)
 	unsigned int hum = 0;
 	uint8 tmp[sizeof(tsApiSpec)]={0};
     tsApiSpec apiSpec;
-	
+
 	hum = read_temperature();
 
-    sprintf(tmp, "TEMP%d\r\n", hum);
+    sprintf(tmp, "TEMP%08x%08x%d\r\n",
+                (uint32)(ZPS_u64AplZdoGetIeeeAddr() >> 32),
+                (uint32)(ZPS_u64AplZdoGetIeeeAddr()),
+                hum);
     PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp));
 
     /* Air to Coordinator */
