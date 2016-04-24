@@ -27,3 +27,5 @@ POST    /params                     controllers.HomeController.modifyParams
 GET     /params                     controllers.HomeController.params
 
 GET		/sensors					controllers.HomeController.listSensors
+
+GET     /updatesensors              controllers.HomeController.updateSensors(s : String)

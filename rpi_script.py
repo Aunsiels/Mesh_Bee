@@ -1,7 +1,9 @@
 """ This program makes the bridge between a meshbee network and a http server """
 
 import io
+import time
 import serial
+import urllib2
 
 class MeshBee:
     """MeshBee: To communicate with a MeshBee"""
@@ -25,9 +27,9 @@ class MeshBee:
         self.meshbee.flush()
         result = self.meshbee.readline()
         if "Error, invalid command" in result or "Enter AT Mode" in result:
-	    self.current_mode = "AT"
+            self.current_mode = "AT"
             self.meshbee.readline()
-	    return True
+            return True
         return False
 
     def to_data_mode(self):
@@ -58,14 +60,14 @@ class MeshBee:
         reading = self.meshbee.readline()
         while reading != "":
             result.append(reading)
-	    reading = self.meshbee.readline()
+            reading = self.meshbee.readline()
         print("INFORMATION ABOUT THE NODE")
         print("".join(result))
 
     def print_nodes(self):
         """print_nodes Print all the nodes in the network"""
         if not self.check_at_mode():
-            return
+            return ""
         self.meshbee.write(unicode('ATLA\r'))
         self.meshbee.flush()
         reading = self.meshbee.readline()
@@ -91,7 +93,10 @@ class MeshBee:
                     result.append(reading[3:])
                     reading = self.meshbee.readline()
                 print("List of nodes :")
-                print("".join(result))
+                nodes = "".join(result)
+                print(nodes)
+                return nodes
+        return ""
 
     def write(self, message):
         """write Write data
@@ -109,10 +114,33 @@ class MeshBee:
         self.meshbee.write(unicode(message))
         self.meshbee.flush()
 
-
+    def read_sensors(self):
+        """readSensors read a line from a sensor"""
+        if self.current_mode != "DATA":
+            if self.current_mode != "AT":
+                if not self.to_at_mode():
+                    print("Problem going to AT mode")
+                    return
+            if not self.to_data_mode():
+                print("Problem going to data mode")
+                return
+        reading = self.meshbee.readline()
+        data_type = reading[0:4]
+        id_sensor = reading[4:4+16] #The mac address
+        data = reading[4+16:]
+        urllib2.urlopen("http://localhost:9000/measuredata?id=" + id_sensor  +
+                        "&dataType=" + data_type  + "&data=" + data)
 
 def main():
     """main The main loop"""
+    last_time = time.time()
+    bee = MeshBee()
+    while True:
+        if time.time() - last_time > 2:
+            nodes = bee.print_nodes()
+            urllib2.urlopen("http://localhost:9000/updatesensors?s=" + nodes)
+        bee.read_sensors()
+        last_time = time.time()
     return 0
 
 if __name__ == "__main__":
