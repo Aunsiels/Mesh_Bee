@@ -29,7 +29,7 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
   }
 
   /* Adds a new measure in the database */
-  def addNewMeasure(id : String, data : Float, currentTime : java.util.Date) = {
+  def addNewMeasure(id : String, data : Double, currentTime : java.util.Date) = {
     this.synchronized{
       HomeController.measures += (id -> (Measure(currentTime, data) :: HomeController.measures.getOrElse(id, List[Measure]())))
 
@@ -89,13 +89,25 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
   def measureData(id : String, dataType : String, data : Float) = Action {
     val currentTime = java.util.Calendar.getInstance.getTime
 
-    addNewMeasure(id, data, currentTime)
-    setClass(id, dataType)
-    setStatus(id, SensorState.Active)
-    addNewSensor(id)
+    if (dataType == "TEMP"){
+        if (data != 65535){
+          var temp = -46.85 + 175.72 * data / 65536.0
+          addNewMeasure(id + dataType, temp, currentTime)
+        }
+    } else if (dataType == "HUMI") {
+        if (data != 65535){
+          var temp = -6.0 + 125 * data / 65536.0
+          addNewMeasure(id + dataType, temp, currentTime)
+        }
+    } else {
+        addNewMeasure(id + dataType, data, currentTime)
+    }
+    setClass(id + dataType, dataType)
+    setStatus(id + dataType, SensorState.Active)
+    addNewSensor(id + dataType)
 
     /* Send the update to connected users */
-    for (actor <- MyWebSocketActor.getActors(id)){
+    for (actor <- MyWebSocketActor.getActors(id + dataType)){
       if (actor != null) {
         actor ! (currentTime.getTime() + " " + data)
       }
@@ -212,7 +224,7 @@ object SensorState extends Enumeration {
 
 case class SensorParams(id : String, name : String)
 
-case class Measure(date : java.util.Date, measure : Float)
+case class Measure(date : java.util.Date, measure : Double)
 case class SensorInfo(id : String, name : String, status : SensorState.Value)
 
 object HomeController {
