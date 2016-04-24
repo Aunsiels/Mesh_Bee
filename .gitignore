@@ -23,3 +23,13 @@ build/obj/*
 *.fig
 *.cmp
 *.tmp
+
+server/bin/LICENSE
+server/bin/README
+server/bin/bin/
+server/bin/libexec/
+server/bin/project/
+server/bin/target/
+server/bin/test/
+src/arduino_example
+
