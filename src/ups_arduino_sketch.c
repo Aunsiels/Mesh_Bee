@@ -53,6 +53,8 @@ void arduino_loop(void)
     tsApiSpec apiSpec;
 
 	hum = read_temperature();
+    /*hum = random();*/ 
+
     uint32 high = (uint32)(ZPS_u64AplZdoGetIeeeAddr() >> 32);
 	uint32 low  = (uint32)(ZPS_u64AplZdoGetIeeeAddr());
 	
@@ -60,6 +62,12 @@ void arduino_loop(void)
                 high,
                 low,
                 hum);
+
+    /*sprintf(tmp, "RAND%08x%08x%d\r\n",
+                high,
+                low,
+                hum);*/
+
     PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp));
 
     /* Air to Coordinator */
