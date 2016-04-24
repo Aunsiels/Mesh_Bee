@@ -43,7 +43,7 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
 
   /* Convert a list of measures to data for the chart */
   def toReadableData(id : String) = {
-    val measure = getMeasures(id)
+    val measure = getMeasures(id).takeRight(50)
     var result = List[String]()
     for (m <- measure) {
       result = "[" :: result
