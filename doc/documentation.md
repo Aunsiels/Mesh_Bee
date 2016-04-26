@@ -106,5 +106,24 @@ Let's look inside the firmware. If you are used to **arduino programming**, you 
 
 In the middle, you can see the four modes of the MeshBee :
 
-* **AT** : this is an interactive mode. You just have to send easy commands to the MeshBee and it will answer in a beautiful way.
-* **API** : this is a more effective and formatted way to communicate with the MCU.
+* **AT** : this is an **interactive mode**. You just have to send easy commands to the MeshBee and it will answer in a beautiful way. To go to AT mode from everywhere, you have to type ***+++***
+* **API** : this is a more effective and formatted way to communicate with the MCU. Thanks to it, you can call AT function from inside and outside the MCU, via UART for example. You can also send query to other nodes through the network thanks to the API commands.
+* **MCU** : this is the **arduino mode**. If you are not in this mode, the arduino loop will not be executed.
+* **Data** : this is a **transparent mode** : all data received on the Zigbee network are directly transmitted to UART and all data sent via UART are broadcasted on the network.
+
+The last thing to understand about this firmware is the **Suli** interface. This is a general librairy created by SeeedStudio. The goal is to make the interaction with GPIOs easier. So, for I2C, ADC,... we shall not need to call the functions from JenOs but we can use the easy functions provided by suli.
+
+### Important Documents
+
+Here are some documents and links which can be useful while developing with the MeshBee.
+
+* The [MeshBee wiki](http://www.seeedstudio.com/wiki/Mesh_Bee) : on this page you will find useful information for the installation and use of the MeshBee. The documents up-to-date are (normally) also availible (some are not updated anymore).
+* The [programmer wiki](http://www.seeedstudio.com/wiki/UartSBee_v5) : can always be useful.
+* A [google group](https://groups.google.com/forum/#!forum/seeedstudio-mesh-bee-discussion-group) dedicated to MeshBee : try to ask your questions there but I am not sure they answer.
+* The [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf)
+* The [CookBook](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_Cook_Book.pdf) : useful to start using MeshBee.
+* The [AT manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/AT_command_manual_for_Mesh_Bee_V1.0.pdf) : AT commands, not updated. See User's manual.
+* The [Zigbee PRO Stack User Guide](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN-UG-3048.pdf) : provided by NXP
+* [JenOS User Guide](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN-UG-3075.pdf) : provided by NXP
+* [Peripheral API](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN-UG-3087.pdf) : provided by NXP
+* [Datasheet JN516x](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN516X.pdf) : provided by NXP 
