@@ -1,0 +1,154 @@
+% -------------------------------------------------------------------------------------------------
+%
+%  Skeleton for theses at the Institute of Robotics and Intelligent Systems
+%
+% -------------------------------------------------------------------------------------------------
+%
+% FILENAME:   thesis.tex
+%
+% ABSTRACT:   main file for theses
+%
+% USAGE:      compile with PDFLaTeX
+%
+% EXCEPTIONS: -
+%
+% HISTORY:    written by Sascha A. Stoeter <stoeter@iris.ethz.ch>, www.stoeter.com, 02.06.2004
+%             modified by Martin Probst, 18.08.2004
+% -------------------------------------------------------------------------------------------------
+
+\documentclass[12pt,a4paper]{article}
+\usepackage{iristhesis}
+
+% -------------------------------------------------------------------------------------------------
+% Add needed packages. Some generally useful packages are listed for
+% your convenience.
+% -------------------------------------------------------------------------------------------------
+\usepackage{subfigure}                          % enable the use of subfigures
+%\usepackage[bf]{caption}                       % must go after subfigure
+\usepackage[thickspace,thinqspace]{SIunits}     %
+
+\usepackage{hyperref}                           % enable Hyperlinks in pdf/ps Docs
+
+
+% -------------------------------------------------------------------------------------------------
+% Some handy definition to simplify future markup changes
+% -------------------------------------------------------------------------------------------------
+\providecommand{\eg}{e.g.}
+\providecommand{\etal}{\textit{et al.}}
+\providecommand{\ie}{i.e.}
+
+
+% -------------------------------------------------------------------------------------------------
+% Select type of thesis
+% -------------------------------------------------------------------------------------------------
+\renewcommand{\iristhesistype}{Semester}
+%\renewcommand{\iristhesistype}{Diploma}
+%\renewcommand{\iristhesistype}{Master}
+%\renewcommand{\iristhesistype}{Ph.D.}
+
+% -------------------------------------------------------------------------------------------------
+% Set names
+% -------------------------------------------------------------------------------------------------
+\renewcommand{\irisauthor}{Peter Muster}
+\renewcommand{\irisadviser}{Hugh Watts}
+
+
+% -------------------------------------------------------------------------------------------------
+% Beginning of the main document body
+% -------------------------------------------------------------------------------------------------
+\begin{document}
+
+% include all Bib-items even if they're not cited in the text
+\nocite{*}
+
+% This is the first part of the front matter. Pages appear unnumbered
+% and the pages are not counted.
+
+% Title page: set title and date preferably formatted according to
+% ISO 8601
+\iristitlepage{Superb Thesis Title}{2004-06}
+
+
+% This is the second part of the front matter. Pages appear with
+% lowercase roman numbering. The first page number is 'i'.
+\pagenumbering{roman}
+
+% Dedication (optional)
+\newpage
+%\thispagestyle{empty}
+\markright{}
+\vspace*{\stretch{1}}
+\begin{center}
+    To some special person
+\end{center}
+\vspace*{\stretch{2}}
+
+% Preface (optional)
+\markright{Preface}
+\include{Preface}
+
+% Abstract must not be longer than one page per language. English and
+% German abstracts are mandatory.
+\addcontentsline{toc}{section}{\protect\numberline{}{Abstract}}
+\markright{Abstract}
+\include{Abstract}
+\addcontentsline{toc}{section}{\protect\numberline{}{Zusammenfassung}}
+\markright{Zusammenfassung}
+\include{Zusammenfassung}
+
+% Table of contents
+\newpage
+\tableofcontents
+\addtocontents{toc}{\vspace{.5\baselineskip}}
+
+% List of tables
+\newpage
+\addcontentsline{toc}{section}{\protect\numberline{}{List of Tables}}
+\listoftables
+
+% List of figures
+\newpage
+\addcontentsline{toc}{section}{\protect\numberline{}{List of Figures}}
+\listoffigures
+
+% Glossary kind of chapters
+\addcontentsline{toc}{section}{\protect\numberline{}{Notation}}
+\addtocontents{toc}{\vspace{.5\baselineskip}}
+\markright{Notation}
+\include{Notation}
+
+
+% This is the main part of the thesis. Pages appear with arabic numbering.
+
+\clearpage
+\pagenumbering{arabic}
+
+% Main body
+\include{Introduction}
+
+\include{GreatWork}
+
+\include{SummaryAndContributions}
+
+% Bibliography
+\newpage
+\addtocontents{toc}{\vspace{.5\baselineskip}}
+\addcontentsline{toc}{section}{\protect\numberline{}{References}}
+\bibliography{thesis}
+
+
+% Appendices (if needed)
+\addtocontents{toc}{\vspace{.5\baselineskip}}
+\appendix
+\include{Appendix}
+\include{Examples}
+
+
+% Epilogue (optional)
+\addtocontents{toc}{\vspace{.5\baselineskip}}
+\addcontentsline{toc}{section}{\protect\numberline{}{Epilogue}}
+\markright{Epilogue}
+\include{Epilogue}
+
+
+\end{document}
