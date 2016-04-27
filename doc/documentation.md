@@ -283,12 +283,104 @@ I2C works the same way than ADC and input/output. You have an init function **vo
 	uint8 msb;
 	suli_i2c_read(NULL, HTDU21D_ADDRESS, &msb, 1);
 
+If you want a use example of I2C, go to **src/humidity.c**. This is a driver to read data from a humidity and temperature sensor.
+
 ##### UART
 
 Like I2C, you have no choice for the UART Port, it has to be UART1. So, in the init function **void suli_uart_init(void * uart_device, int16 uart_num, uint32 baud);**, the is no need to specify uart_device and uart_num. The baud can be : 4800, 9600, 19200, 38400, 57600 or 115200. Note that by default, the baud rate is initialized to 115200, so there is no special need to initialize it.
 
 For the writing part, you have a general function, **void suli_uart_send(void * uart_device, int16 uart_num, uint8 *data, uint16 len);** which just take an array of data and the length of this array. Then, you have more specific functions : void suli_uart_send_byte(void * uart_device, int16 uart_num, uint8 data);, void suli_uart_write_float(void *uart_device, int16 uart_num, float data, uint8 prec);, void suli_uart_write_int(void * uart_device, int16 uart_num, int32 num);. However, you surely want to use printf like function, much easier to use. So, I recommand you use **void suli_uart_printf(void *uart_device, int16 uart_num, const char *fmt, ...); ** (the three dots are a notation of C to say that the number of argument is undetermine, as it is in printf).
 
+	suli_uart_printf(NULL, NULL, "<HeartBeat%d>\r\n", random());
+
 For the reading part, you have a function to know if you have something to read : **uint16 suli_uart_readable(void *uart_device, int16 uart_num);** which returns one if uart has received readable data. Then you can read a byte with **uint8 suli_uart_read_byte(void *uart_device, int16 uart_num);**
 
 That's it for Suli. There is nothing hard here and if we want more advanced functions, we will have to dig into API provided by NXP. However, **suli/suli.c** can be useful as you can see example of use of the API.
+
+### API MODE
+
+The API is a simple way to communicate with the MCU from outside. The messages have a particular form, which is explained in details in the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). It is also possible to call API commands from MCU mode.
+
+#### API Frames
+
+TODO, for now read the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf).
+
+#### Send API Commands from MCU Mode
+
+To send an API Command, we need to build a **tsApiSpec**, which is a representation of an API Frame. Let's see what is inside :
+
+	/* API-specific structure */                                                                             
+	typedef struct                                                                                           
+	{                                                                                                        
+ 	    uint8 startDelimiter;   // start delimiter '0x7e'                                                    
+	    uint8 length;           // length = sizeof(payload)                                                  
+	    uint8 teApiIdentifier;  //indicate what type of packets this is                                      
+	    union                                                                                                
+	    {                                                                                                    
+	        /*diff app frame*/                                                                               
+	        uint8 dummyByte;            //dummy byte for non-information frame                               
+	        tsNwkTopoReq nwkTopoReq;                                                                         
+	        tsNwkTopoResp nwkTopoResp;                                                                       
+	        tsLocalAtReq localAtReq;                                                                         
+	        tsLocalAtResp localAtResp;                                                                       
+	        tsRemoteAtReq remoteAtReq;                                                                       
+	        tsRemoteAtResp remoteAtResp;                                                                     
+	        tsTxDataPacket txDataPacket;                                                                     
+	        tsOtaNotice    otaNotice;    //OTA notice message                                                
+	        tsOtaReq otaReq;                                                                                 
+	        tsOtaResp otaResp;                                                                               
+	        tsOtaStatusResp otaStatusResp;                                                                   
+	    }__attribute__ ((packed)) payload;                                                                   
+	    uint8 checkSum;                             //verify byte                                            
+	}__attribute__ ((packed)) tsApiSpec;
+
+Let's go through it. We do not care about **startDelimiter**, it is always 0x7e and will be set for us. Then comes the **length** of the payload, which is the useful data in the Frame. The **teApiIdentifier** is the id to identify a packet. I can be one of the following option :
+
+	typedef enum
+	{
+	    /* API identifier */
+	    API_LOCAL_AT_REQ = 0x08,      //local At require
+	    API_LOCAL_AT_RESP = 0x88,    //local At response
+	    API_REMOTE_AT_REQ = 0x17,    //remote At require
+	    API_REMOTE_AT_RESP = 0x97,   //remote At response
+	    API_DATA_PACKET = 0x02,      //indicate that's a data packet,data packet is certainly remote packet.
+	    API_TEST = 0x8f,             //Test
+	    API_OTA_NTC = 0xd3,
+	    API_OTA_REQ = 0xb0,
+	    API_OTA_RESP = 0x06,
+	    API_OTA_ABT_REQ = 0xf7,
+	    API_OTA_ABT_RESP = 0xdb,
+	    API_OTA_UPG_REQ = 0x5a,
+	    API_OTA_UPG_RESP = 0xe6,
+	    API_OTA_ST_REQ = 0x91,
+	    API_OTA_ST_RESP = 0x89,
+	    API_TOPO_REQ = 0xfb,
+	    API_TOPO_RESP = 0x6b
+	}teApiIdentifier;
+
+Depending of what you are sending, you will have to choose the correct id. They are describe in the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). Now, you have a union, **payload**. In C, it simply means that you have to choose one of the following options. The _ _atttribute_ _ ((packed)) means that the compiler have to be all the fields together, without a hole, in the memory : they are "packed"". Notice that in the payload, you have for example **localAtReq** to do, as the name says, a local At request. If you want the exact definition of a payload, go to **include/firmware_at_api.h** Then, finally, you have a checksum to be a bit more sure that data are transmitted without problems (like a bit switch).
+
+Most of the time, you do not have to complete the tsApiSpec yourself. Functions are provided to make it easier. It is also the case for **tsLocalAtResp** and **tsRemoteAtResp**.
+
+For example, if we want to send data to another node in the network we can do it by sending a API command.
+
+	#include "firmware_at_api.h"
+	#include "firmware_api_pack"
+	//Those two include contains the function to easily create tsApiSpec and send them
+
+	tsApiSpec apiSpec;
+	uint8 tmp[sizeof(tsApiSpec)]={0}; // Will contain the final result
+	//For now we put in it a string
+	sprintf(tmp, "TEST %d", 3); // Just a formatted string (like in printf) in tmp
+	PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp)); // This function create a DataFrame
+	uint16 size = i32CopyApiSpec(&apiSpec, tmp); //We actually create the array containing the API Frame in tmp
+	API_bSendToAirPort(UNICAST, 0x0000, tmp, size); // We send the message to 0x0000, the coordinator
+
+To fill tsApiSpec, we used, for data, **void PCK_vApiSpecDataFrame(tsApiSpec *apiSpec, uint8 frameId, uint8 option, void *data, int len);** in **firmware_api_pack.h**. The frameId just identify the frame, put whatever you want. The option 0 for UNICAST, 1 for BROADCAST. It is also important to create the actual frame inside an array with **int i32CopyApiSpec(tsApiSpec *spec, uint8 *dst);** also in **firmware_api_pack.h**. It returns the size of the frame, which is usefull when we we want to send our frame with **bool API_bSendToAirPort(uint16 txMode, uint16 unicastDest, uint8 *buf, int len);** in **firmware_at_api.h**. The txMode can be either UNICAST (to only one node) or BROADCAST (to all nodes). Then you have to specify an address which will be used if you are in UNICAST mode (otherwise it does not matter), the frame array you have just created and its length.
+
+You can also call AT commands thanks to **int API_i32AtCmdProc(uint8 *buf, int len);** in **firmware_at_api.h**. Just give it your command and its length and it returns you if the function succeeded or not.
+
+	char * aj = "ATAJ1";
+	API_i32AtCmdProc(aj, 5);
+
+You have other functions in firmware_at_api.h and firmware_api_pack.h but for now I do not find them useful. Explore the code if you have to go in more details.

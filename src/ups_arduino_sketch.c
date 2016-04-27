@@ -48,15 +48,15 @@ void arduino_loop(void)
     vDelayMsec(100);
     suli_uart_printf(NULL, NULL, "random:%d\r\n", random());
 #elif TARGET_ROU
-	unsigned int hum = 0;
-	uint8 tmp[sizeof(tsApiSpec)]={0};
+    unsigned int hum = 0;
+    uint8 tmp[sizeof(tsApiSpec)]={0};
     tsApiSpec apiSpec;
 
-	hum = read_temperature();
+    hum = read_temperature();
     /*hum = random();*/
 
     uint32 high = (uint32)(ZPS_u64AplZdoGetIeeeAddr() >> 32);
-	uint32 low  = (uint32)(ZPS_u64AplZdoGetIeeeAddr());
+    uint32 low  = (uint32)(ZPS_u64AplZdoGetIeeeAddr());
 
     sprintf(tmp, "TEMP%08x%08x%d\r\n",
                 high,
