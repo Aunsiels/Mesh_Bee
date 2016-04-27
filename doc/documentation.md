@@ -128,6 +128,8 @@ Here are some documents and links which can be useful while developing with the 
 * [Peripheral API](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN-UG-3087.pdf) : provided by NXP
 * [Datasheet JN516x](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN516X.pdf) : provided by NXP
 
+![MeshBee pins](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/600px-Mesh_Bee_Pin.jpg)
+
 ### Installation
 
 To be able to compile our code, we need to install the tools given by NXP. I will summurize instructions given on [this page](http://www.seeedstudio.com/wiki/Mesh_Bee#9.1_Firmware_Downloads).
@@ -192,4 +194,4 @@ AT commands are composed as follow : **ATXX[YYYY]**. It always begins by  AT. Th
 
 Let's try some commands. Begin with **ATIF**. This will print information about the MeshBee. Check that the Device Type is the one you think it is. If you are the coordinator, send **ATPA1**. This command will create a new network. Reset the MeshBee and normally you will see the **ASSOC** led on the programmer light up. Send **ATIF** again and read the **PANID** field, which is the id of your network. You can now go to an other mode, for example data mode with **ATDT**.
 
-Let's try to connect an other node to the network. Do not forget that you **always** need the coordinator to be on. Unplug it from the programmer give it power, for example with the raspberry pi (see below). If you want to be sure that it is connected, you can also connect a LED (and a resistor !) to the ASSOC pin (you have the names of the pins below the MeshBee).
+Let's try to connect an other node to the network. Do not forget that you **always** need the coordinator to be on. Unplug it from the programmer and give it power, for example with the raspberry pi (see below). If you want to be sure that it is connected, you can also connect a LED (and a resistor !) to the ASSOC pin (you have the names of the pins below the MeshBee or see the picture above).
