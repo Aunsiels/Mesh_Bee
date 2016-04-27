@@ -138,7 +138,9 @@ The first thing we need to check is if whether the programmer is well configured
 
 ![programmer configuration](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/FT_Prog.png)
 
-**THIS IS VERY IMPORTANT ! BE SURE THE PROGRAMMER IS ON 3.3V ! OTHERWISE, YOU WILL DESTROY THE MESHBEE.**
+**THIS IS VERY IMPORTANT ! BE SURE THE PROGRAMMER IS ON 3.3V ! OTHERWISE, YOU WILL DESTROY THE MESHBEE.** To do it, use the rigth switch (if the antenna is up) and put it up to 3.3.
+
+You also have to put the programmer in **PROG** mode thanks to the second switch, in a bottom position. This mode allows you to program the MeshBee.
 
 Now, we need the tool to program the Meshbee. [Download it](http://www.seeedstudio.com/wiki/File:Jennic_flash_programmer.zip) and unzip it. Connect the Meshbee to the programmer. The antenna **MUST** be on the same size than the usb port. You can now open **FlashGUI.exe**. This is the software to flash the MeshBee. You should create a shortcut somewhere because you will need it a lot. Here are the steps to program the Meshbee :
 
@@ -167,3 +169,16 @@ And for the end-node :
 Compiling can be long. If you did something wrong, you will have an error message. Otherwise, the files in Mesh_Bee/build/output will be updated (check the date to be sure).
 
 You should now know how the compile a program and flash it. It is time now to interact with the MeshBee.
+
+### AT MODE
+
+We are ready to communicate with the MeshBee. This communication uses **UART1**, so any USB-to-TTL working at **3.3V (this is super important)** device would work. We are going to use the programmer for now. Just switch the left switch to **UART1** (up).
+
+We need a tool to communicate. I used [realterm](http://realterm.sourceforge.net/) on windows but feel free to use to one you like. [Download](https://sourceforge.net/projects/realterm/files/Realterm/) the latest version and install it.
+
+![realterm](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/realterm1.png)
+
+When you open it, they ask you to choose a display mode. In **AT mode**, we simply communicate with ascii so there is nothing to do here now. Go to the second tab, **PORT**. This is were we configure the communication. The Baud is **115200**, the is **no parity bit**, **8 data bits**, **1 stop bit** and **no flow control**. Do you remember the number after **COM** when you programmed the Meshbee ? You have to put this number in the Port field.
+
+![Port](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/Ports1.png)
+
