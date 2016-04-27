@@ -140,6 +140,8 @@ The first thing we need to check is if whether the programmer is well configured
 
 ![programmer configuration](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/FT_Prog.png)
 
+
+
 **THIS IS VERY IMPORTANT ! BE SURE THE PROGRAMMER IS ON 3.3V ! OTHERWISE, YOU WILL DESTROY THE MESHBEE.** To do it, use the rigth switch (if the antenna is up) and put it up to 3.3.
 
 You also have to put the programmer in **PROG** mode thanks to the second switch, in a bottom position. This mode allows you to program the MeshBee.
@@ -211,3 +213,52 @@ The MCU mode is the "arduino like" mode. To go to this mode from the AT mode, ju
 The source code is located in Mesh_Bee/src. One of the file is called **ups_arduino_sketch.c** . This file contains the two arduino-like functions : **arduino_setup** and **arduino_loop**.
 
 The **arduino_setup** function is called when we enter in MCU mode, through the function **ups_init** you can find in **firmware_aups.c** (AUPS stands for Arduino User Programming Space). This function also calls **suli_init**, so you do no need to initialize suli (see below) if you are in MCU mode. In the **arduino_setup** function, you need to execute everything that needs to be done at the beginning of your program, for example initialization of peripherals.
+
+The **arduino_loop** is a function which is called  periodically. The time between two loops can be defined, in AT mode, by **ATMFXXXX** where XXXX is a number between 0 and 3000 and is the time in milliseconds between two **Arduino_Loop**. This Arduino_Loop function is a task, defined in **firmware_aups.c**,  and either calls **arduino_loop** or exits MCU mode to AT mode if **+++** is read.
+
+You can notice that here we use the C preprocessor to know for which device we are compiling the program for.
+
+	#ifdef TARGET_COO
+	// Code for the coordinator
+ 	#elif TARGET_ROU
+	// Code for the router
+	#else
+	// Code for the end node
+	#endif
+
+We know now where to write code. You need to know what code to put in these two functions.
+
+#### The SULI Library
+
+SULI is a library written by SeeedStudio to easily use the peripherals. To import it, just add :
+
+	#include "suli.h"
+
+If you are in MCU mode, you do not need to initialize suli. Otherwise, call :
+
+	suli_init();
+
+To know the pin disposition, see the picture above.
+
+##### Simple GPIO
+
+Let's begin with simple input/output. First, we need to initialize the pin. We need to use the **void suli_pin_init(IO_T *pio, PIN_T pin)** function. It takes two arguments : an **IO_T** variable that contains the properties of the pin and the pin number.
+
+	IO_T led_io;
+	suli_pin_init(&led_io, D9);
+
+For the pin number, is either an int or you can also use pin names (there are defined in suli/suli.h) : 
+
+	D0 = 0, D1=1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, D14, D15, D16, D17, D18, D19, D20, DO0=33, DO1=34, A3=0, A4=1, A2=50, A1, TEMP, VOL
+
+Now, we need to set the direction, input or output, of the pin. We use **void suli_pin_dir(IO_T *pio, DIR_T dir)** function, which takes a IO_T argument and a direction, which can be either **HAL_PIN_OUTPUT** or **HAL_PIN_INPUT**.
+
+	suli_pin_dir(&led_io, HAL_PIN_OUTPUT);
+
+We can know read the state of a pin with **int16 suli_pin_read(IO_T *pio)** and write the state of a pin with **void suli_pin_write(IO_T *pio, int16 state)**. The state can be either **HAL_PIN_HIGH** or **HAL_PIN_LOW**
+
+	suli_pin_write(&led_io, HAL_PIN_HIGH);
+
+Note that we can also read a pulse with uint32 suli_pulse_in(IO_T *pio, uint8 state, uint32 timeout), which return the length of the pulse in microseconds.
+
+##### ADC
