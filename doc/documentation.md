@@ -182,3 +182,14 @@ When you open it, they ask you to choose a display mode. In **AT mode**, we simp
 
 ![Port](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/Ports1.png)
 
+We can now send and receive data. Go to the **Send** tab. You have two boxes with *Send Numbers* and *Send Ascii* on the right. This is where you have to type the messages you want to send. When you send an **AT** command, it is important to have to have **CR** (which is \r) at the end of the line. To do so, **check the CR box**. I will not specify anymore this <CR> symbole at the end of each AT command.
+
+![send](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/sendchars1.png)
+
+Let's send our first command : **+++**. This allows us to go to AT mode. If you were in MCU mode before and the loop is too long, you might have problems to enter in AT mode. Just spam +++ while reseting the MeshBee (button on the side of the programmer). You will receive a *Enter AT Mode* if you were not in AT mode yet or a *Error, invalid command* if you were in AT mode. At least normally you receive something.
+
+AT commands are composed as follow : **ATXX[YYYY]**. It always begins by  AT. Then follow two caracters to identify the command, for example IF or AJ. Then follow up to 4 optional numbers which are parameters of the command. For more about it, go to the AT commands section in the  [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). Note that all commands are not avalible for all device type. For instance, an end-node cannot create a network and thus will not have this command.
+
+Let's try some commands. Begin with **ATIF**. This will print information about the MeshBee. Check that the Device Type is the one you think it is. If you are the coordinator, send **ATPA1**. This command will create a new network. Reset the MeshBee and normally you will see the **ASSOC** led on the programmer light up. Send **ATIF** again and read the **PANID** field, which is the id of your network. You can now go to an other mode, for example data mode with **ATDT**.
+
+Let's try to connect an other node to the network. Do not forget that you **always** need the coordinator to be on. Unplug it from the programmer give it power, for example with the raspberry pi (see below). If you want to be sure that it is connected, you can also connect a LED (and a resistor !) to the ASSOC pin (you have the names of the pins below the MeshBee).
