@@ -130,6 +130,8 @@ Here are some documents and links which can be useful while developing with the 
 
 ![MeshBee pins](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/600px-Mesh_Bee_Pin.jpg)
 
+![Pin disposition](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/pin_dispo.png)
+
 ### Installation
 
 To be able to compile our code, we need to install the tools given by NXP. I will summurize instructions given on [this page](http://www.seeedstudio.com/wiki/Mesh_Bee#9.1_Firmware_Downloads).
@@ -139,8 +141,6 @@ To be able to compile the program, you will need to use **Windows** (sorry for t
 The first thing we need to check is if whether the programmer is well configured or not. You only need to do that if it is the first time you use it. Download [this program](http://www.seeedstudio.com/wiki/File:FT_Prog_v2.8.2.0.zip) and unzip it with your favorite unzipper. Connect the UartSBee v5 to PC, open **FT_Prog** and configure it like this:
 
 ![programmer configuration](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/FT_Prog.png)
-
-
 
 **THIS IS VERY IMPORTANT ! BE SURE THE PROGRAMMER IS ON 3.3V ! OTHERWISE, YOU WILL DESTROY THE MESHBEE.** To do it, use the rigth switch (if the antenna is up) and put it up to 3.3.
 
@@ -238,7 +238,7 @@ If you are in MCU mode, you do not need to initialize suli. Otherwise, call :
 
 	suli_init();
 
-To know the pin disposition, see the picture above.
+To know the pin disposition, see the picture above, in **IMPORTANT DOCUMENTS**.
 
 ##### Simple GPIO
 
@@ -262,3 +262,33 @@ We can know read the state of a pin with **int16 suli_pin_read(IO_T *pio)** and 
 Note that we can also read a pulse with uint32 suli_pulse_in(IO_T *pio, uint8 state, uint32 timeout), which return the length of the pulse in microseconds.
 
 ##### ADC
+
+Like for simple input/output, we need to initialize the pin for analog reading first. We use void **suli_analog_init(ANALOG_T * aio, PIN_T pin)** where ANALOG_T is the equivalent of IO_T. For the pin, choose between **A3=0, A4=1, A2=50, A1, TEMP, VOL**. You can now read with **int16 suli_analog_read(ANALOG_T *aio)**.
+
+	ANALOG_T temp_pin;
+	suli_analog_init(&temp_pin, TEMP);
+	int16 temper = suli_analog_read(temp_pin);
+
+##### Time functions
+
+You have two fonctions in Suli to wait a certain amount of time : **void suli_delay_us(uint32 us); ** for microseconds waiting and **void suli_delay_ms(uint32 ms);** for milliseconds waiting. You can also know for how long the program have been running with : **uint32 suli_millis(void);** for milliseconds and **uint32 suli_micros(void);** for microseconds. Take care with overflow, after 50 days for suli_millis but after 70 minutes for suli_micros.
+
+##### I2C
+
+I2C works the same way than ADC and input/output. You have an init function **void suli_i2c_init(void * i2c_device);**, a write function **uint8 suli_i2c_write(void * i2c_device, uint8 dev_addr, uint8 *data, uint8 len);** and a read function **uint8 suli_i2c_read(void * i2c_device, uint8 dev_addr, uint8 *buff, uint8 len);**. For I2C, as you have no choice for the pin, specify the i2c_device is useless, just give NULL.
+
+	suli_i2c_init(NULL);
+	uint8 data = TRIGGER_HUMD_MEASURE_NOHOLD;
+	suli_i2c_write(NULL, HTDU21D_ADDRESS, &data, 1);
+	uint8 msb;
+	suli_i2c_read(NULL, HTDU21D_ADDRESS, &msb, 1);
+
+##### UART
+
+Like I2C, you have no choice for the UART Port, it has to be UART1. So, in the init function **void suli_uart_init(void * uart_device, int16 uart_num, uint32 baud);**, the is no need to specify uart_device and uart_num. The baud can be : 4800, 9600, 19200, 38400, 57600 or 115200. Note that by default, the baud rate is initialized to 115200, so there is no special need to initialize it.
+
+For the writing part, you have a general function, **void suli_uart_send(void * uart_device, int16 uart_num, uint8 *data, uint16 len);** which just take an array of data and the length of this array. Then, you have more specific functions : void suli_uart_send_byte(void * uart_device, int16 uart_num, uint8 data);, void suli_uart_write_float(void *uart_device, int16 uart_num, float data, uint8 prec);, void suli_uart_write_int(void * uart_device, int16 uart_num, int32 num);. However, you surely want to use printf like function, much easier to use. So, I recommand you use **void suli_uart_printf(void *uart_device, int16 uart_num, const char *fmt, ...); ** (the three dots are a notation of C to say that the number of argument is undetermine, as it is in printf).
+
+For the reading part, you have a function to know if you have something to read : **uint16 suli_uart_readable(void *uart_device, int16 uart_num);** which returns one if uart has received readable data. Then you can read a byte with **uint8 suli_uart_read_byte(void *uart_device, int16 uart_num);**
+
+That's it for Suli. There is nothing hard here and if we want more advanced functions, we will have to dig into API provided by NXP. However, **suli/suli.c** can be useful as you can see example of use of the API.
