@@ -53,11 +53,11 @@ void arduino_loop(void)
     tsApiSpec apiSpec;
 
 	hum = read_temperature();
-    /*hum = random();*/ 
+    /*hum = random();*/
 
     uint32 high = (uint32)(ZPS_u64AplZdoGetIeeeAddr() >> 32);
 	uint32 low  = (uint32)(ZPS_u64AplZdoGetIeeeAddr());
-	
+
     sprintf(tmp, "TEMP%08x%08x%d\r\n",
                 high,
                 low,

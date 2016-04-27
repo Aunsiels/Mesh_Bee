@@ -194,4 +194,20 @@ AT commands are composed as follow : **ATXX[YYYY]**. It always begins by  AT. Th
 
 Let's try some commands. Begin with **ATIF**. This will print information about the MeshBee. Check that the Device Type is the one you think it is. If you are the coordinator, send **ATPA1**. This command will create a new network. Reset the MeshBee and normally you will see the **ASSOC** led on the programmer light up. Send **ATIF** again and read the **PANID** field, which is the id of your network. You can now go to an other mode, for example data mode with **ATDT**.
 
-Let's try to connect an other node to the network. Do not forget that you **always** need the coordinator to be on. Unplug it from the programmer and give it power, for example with the raspberry pi (see below). If you want to be sure that it is connected, you can also connect a LED (and a resistor !) to the ASSOC pin (you have the names of the pins below the MeshBee or see the picture above).
+![ATIF](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/400px-Configure_coo2.png)
+
+Let's try to connect an other node to the network. Do not forget that you **always** need the coordinator to be on. Unplug it from the programmer and give it power, for example with the raspberry pi (see below). If you want to be sure that it is connected, you can also connect a LED (and a resistor !) to the ASSOC pin (you have the names of the pins below the MeshBee or see the picture above). Plug in the programmer a node that you have flashed with the router or end-node code (or flash it now).
+
+As before, go to AT mode with **+++** and get information with **ATIF**. If the MeshBee was not configured before, the PANID should be 0x0000 or a number different from the one of the router. Let's say to our device to automatically join a network with **ATAJ1**. Then rescan the network with **ATRS** and normally after some seconds, the **ASSOC** led will light up. Check information with **ATIF** and now you should have the same PANID than the coordinator. To know what are the other nodes on the network, send the **ATLA** command. That will send a request to all nodes and you will receive information about all of them. If you go to data mode with **ATDT**, everything you type is broadcast on the network. If the coordinator is also linked to a serial port, for example the raspberry pi one (see below), you will see your message appear in the coordinator console.
+
+We now know the basis of AT commands how to simply configure a MeshBee and how to send messages.
+
+### MCU MODE
+
+The MCU mode is the "arduino like" mode. To go to this mode from the AT mode, just type **ATMC**. Then, the arduino-loop will start.
+
+#### The Arduino-like functions
+
+The source code is located in Mesh_Bee/src. One of the file is called **ups_arduino_sketch.c** . This file contains the two arduino-like functions : **arduino_setup** and **arduino_loop**.
+
+The **arduino_setup** function is called when we enter in MCU mode, through the function **ups_init** you can find in **firmware_aups.c** (AUPS stands for Arduino User Programming Space). This function also calls **suli_init**, so you do no need to initialize suli (see below) if you are in MCU mode. In the **arduino_setup** function, you need to execute everything that needs to be done at the beginning of your program, for example initialization of peripherals.
