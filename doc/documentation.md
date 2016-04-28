@@ -391,3 +391,83 @@ You have other functions in firmware_at_api.h and firmware_api_pack.h but for no
 Here I will try to explain the first experiments I did when I received the MeshBees. I began with an simple hello word, with a LED.
 
 #### Hello World !
+
+The circuit is really simple : a Led and a resistor connected to D9.
+
+![led](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/led_scheme.png)
+
+The code we use is simple.
+
+	#include "suli.h"
+
+	IO_T led_io;
+	int state;
+
+	void arduino_setup(void){
+		suli_pin_init(&led_io, D9);
+		suli_pin_dir(&led_io, HAL_PIN_OUTPUT);
+		state = HAL_PIN_OUTPUT; // contains the current state of the LED
+		suli_pin_write(&led_io, state);
+	}
+
+	void arduino_loop(void){
+		state = ~state; // We just exchange the state of the pin
+		
+		suli_pin_write(&led_io, state); //Blink
+
+		suli_delay_ms(1000); // wait one second
+	}
+
+Note that instead of waiting actively with suli_delay_ms, we could also change the period of the arduino loop with **ATMF1000**.
+
+#### Read a Brightness
+
+The measure the brightness, with use a photoresistor : the higher the brightness the lower the resitance. So, to measure it, with do a voltage divider with a resitor of 5k ohms.
+
+![photoresistor](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/photores.png)
+
+We connect the middle point with ADC3, i.e. D0. Here is the code, we read the brightness and send it to the coordinator :
+
+	#include "suli.h"
+	#include "firmware_api_pack.h"
+	#include "firmware_at_api.h"
+
+	ANALOG_T brightness_pin;
+
+	void arduino_setup(void){
+		suli_analog_init(&brightness_pin);
+	}
+
+	void arduino_loop(void){
+		uint8 tmp[sizeof(tsApiSpec)]={0};
+		tsApiSpec apiSpec;
+
+		int16 bright = suli_analog_read(brightness_pin);
+		sprintf(tmp, "BRIGHTNESS%ld\r\n", bright);
+		PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp));
+
+		uint16 size = i32CopyApiSpec(&apiSpec, tmp);
+		if(API_bSendToAirPort(UNICAST, 0x0000, tmp, size))
+		{
+			suli_uart_printf(NULL, NULL, "Brightness read %ld", bright);
+    		}
+
+		suli_delay_ms(1000); // wait one second
+	}
+
+Note that you could also read the internal temperature the same way : just replace the initialization of the pin by **suli_analog_init(&temp_pin, TEMP);**.
+
+#### A driver for HTU21D
+
+HTU21D is a humidity sensor which can also output a temperature. It is communicating by I2C with the MCU. You can find the code for it in **src/humidity.c**. You have three functions. The first one is **void init_humidity(void)**. It simply initialize everything to read the sensor, here it is only initializing I2C.
+
+Then you have two functions. One to read humidity : **unsigned int read_humidity(void)**. It returns you a raw_humidity. To get the real one, just compute : 
+
+	-6 + (125 * rawHumidity / (float)65536);
+
+The function asks to read humidity. Then, it waits for the result to be avalible and read it. The message read is composed of three parts : the most and least significative bytes of the humidity and a checksum to be sure of what we read. Note that inside the humidity value, there are two status bits we need to erase.
+
+The temperature reading works the same way, with **unsigned int read_temperature(void)**. It returns the raw temperature value, so to get the real one, you need to compute : 
+
+	(float)(-46.85 + (175.72 * rawTemperature / (float)65536))
+
