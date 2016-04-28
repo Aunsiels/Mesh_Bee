@@ -471,3 +471,12 @@ The temperature reading works the same way, with **unsigned int read_temperature
 
 	(float)(-46.85 + (175.72 * rawTemperature / (float)65536))
 
+## The Interface
+
+To do the interface between the MeshBee network and the server side, we are going to use a raspberry pi which will be connected directly to the coordinator by UART.
+
+### Configuring the Raspberry Pi
+
+For now, I am using a Raspberry Pi 3. It is pretty cool because it is powerful enough to also run a server (see later) and has a Wifi chip integrated. For the OS, we are going to use Raspbian. The first thing you have to do if you have a new Raspberry Pi is to install the OS. I recommand you to do it on a at least 8Go SD card. I will not explain here all the steps to install. Go to [adafruit raspberry pi tutorial](https://learn.adafruit.com/category/learn-raspberry-pi) for example to know how or search on google. During the configuration, when you are in raspi-config, do not forget to activate the serial communication in the advanced parameters.
+
+I now suppose you have Raspbian install and you are ready to use it.
