@@ -515,3 +515,16 @@ Obviously, to comminicate with the MeshBee via the serial port, you need to link
 
 To give power to the MeshBee, connect the 3.3V pin of the MeshBee to the 3.3V pin of the Raspberry Pi (pin 01). Do the same for Ground (GND) which is on ports 06 or 09 for example. Then, and it is **important** to do it correctly, connect the TX1 pin of the MeshBee to the RXD0 pin of the Raspberry Pi (pin 10) and the RX1 pin of the MeshBee to the TXD0 pin of the Raspberry Pi (pin 08). You should have something like that :
 
+![connect mb rp](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/connect_meshbee_rp.jpg)
+
+Note that I added a LED (and a resistor !) connected to the ASSOC pin of the MeshBee to be sure that the MeshBee is connected and working.
+
+Now that we have the MeshBee connected, we can try to communicate with it. For that, you could use software like minicom or cutecom. I personnaly recommand **cutecom** as it is easy to use. Install it :
+
+	sudo apt-get install cutecum
+
+Then open it by typing **cutecom** in the terminal. A window opens.
+
+![cutecom](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/cutecom-0.14.0.png)
+
+Normally, parameters are good when you open it. Just check that the device is **/dev/ttyS0** and at the bottom that you have **CR line end**. You can know try to send **AT** commands for example like we saw above.
