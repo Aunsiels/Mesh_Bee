@@ -128,6 +128,7 @@ Here are some documents and links which can be useful while developing with the 
 * [Peripheral API](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN-UG-3087.pdf) : provided by NXP
 * [Datasheet JN516x](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN516X.pdf) : provided by NXP
 * [Zigbee Cluster Library](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN-UG-3077.pdf) : provided by NXP
+* [Zigbee Home Automation](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/JN-UG-3076.pdf): provided by NXP
 
 ![MeshBee pins](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/600px-Mesh_Bee_Pin.jpg)
 
@@ -479,4 +480,38 @@ To do the interface between the MeshBee network and the server side, we are goin
 
 For now, I am using a Raspberry Pi 3. It is pretty cool because it is powerful enough to also run a server (see later) and has a Wifi chip integrated. For the OS, we are going to use Raspbian. The first thing you have to do if you have a new Raspberry Pi is to install the OS. I recommand you to do it on a at least 8Go SD card. I will not explain here all the steps to install. Go to [adafruit raspberry pi tutorial](https://learn.adafruit.com/category/learn-raspberry-pi) for example to know how or search on google. During the configuration, when you are in raspi-config, do not forget to activate the serial communication in the advanced parameters.
 
-I now suppose you have Raspbian install and you are ready to use it.
+I now suppose you have Raspbian install and you are ready to use it. We need to configure the Serial port to communicate with the MeshBee. You can find the serial port in **/dev/ttyS0** on RP3 or **/dev/ttyAMA0**. The problem is that by default, the raspberry is configured to have a terminal on this port. So we need to remove it. To do so, open the file **/boot/cmdline.txt** :
+
+	sudo nano /boot/cmdline.txt
+
+and remove the part with ttyAMA0 or serial0 (console=serial0, 115200). You should have something like :
+
+	dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
+
+(no serial0). What follows is for the Raspberry Pi 3. We need to say that we activate uart. For that, we have to open the file **/boot/config.txt**
+
+	sudo nano /boot/config.txt
+
+and add the lines
+
+	enable_uart=1
+	core_freq=250
+
+For the version of Raspbian I use, we need to change the core frequency. It may be corrected in future version. I had problems with the communication with the MeshBee. So, I took my oscilloscope and measured the baudrate and instead of being 115200, it was aroud 72000. Try this if your are not sure.
+
+We are now ready to run our program. With the complete version of Raspbian, you should not have to install git and python librairies to manipulate the GPIOs. Clone my Mesh_Bee repository where you want :
+
+	git clone https://github.com/Aunsiels/Mesh_Bee.git
+
+Also, if you do not like nano, you could install another editor, like vim. Rasbian comes from Debian, so you also find apt-get
+
+	sudo apt-get install vim
+
+### Connections
+
+Obviously, to comminicate with the MeshBee via the serial port, you need to link it to the Raspberry Pi. Here is how the pins are organized on the Raspberry Pi 3.
+
+![RP3 pin layout](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/pi3_gpio.png)
+
+To give power to the MeshBee, connect the 3.3V pin of the MeshBee to the 3.3V pin of the Raspberry Pi (pin 01). Do the same for Ground (GND) which is on ports 06 or 09 for example. Then, and it is **important** to do it correctly, connect the TX1 pin of the MeshBee to the RXD0 pin of the Raspberry Pi (pin 10) and the RX1 pin of the MeshBee to the TXD0 pin of the Raspberry Pi (pin 08). You should have something like that :
+
