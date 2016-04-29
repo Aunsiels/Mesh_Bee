@@ -1,0 +1,87 @@
+%  Sascha A. Stoeter <stoeter@iris.ethz.ch>, www.stoeter.com
+%
+%  Modified by: Taylor Newton.  On: 30.05.2013.  Purpose: Title appears mashed together for text
+%  3 lines or greater.  Added double-spacing on title argument in \newcommand{\iristitlepage}
+
+\def\packagename{iristhesis}
+\def\packagemessage{Thesis style of the Institute of Robotics and
+  Intelligent Systems, ETH Zurich.}
+\def\fileversion{0.1}
+\def\filedate{2004/06/02}
+\def\docdate{2004/06/02}
+
+
+% ---- identification ---------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{iristhesis}[\filedate\space v\fileversion\space \packagename]
+\typeout{Package: `\packagename' v\fileversion\space <\filedate>}
+\typeout{\packagemessage}
+
+
+% ---- package loading --------------------------------------------------------
+
+\RequirePackage{a4}
+\RequirePackage{amsmath}
+\RequirePackage{fancyhdr}
+\RequirePackage{graphicx}
+\RequirePackage{setspace}
+
+
+% ---- main code --------------------------------------------------------------
+
+\DeclareGraphicsExtensions{.png,.PNG,.pdf,.PDF,.jpg,.JPG}
+
+\setlength{\headheight}{14.49998pt}
+
+\onehalfspacing
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{2}
+
+\numberwithin{equation}{section}  % (sec.number)
+
+\pagestyle{fancy}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhead{}
+\rhead{\thepage}
+\lhead{\nouppercase{\rightmark}}
+\fancyfoot{}
+
+\bibliographystyle{abbrv}
+
+
+\newcommand{\iristhesistype}{}
+\newcommand{\irisauthor}{}
+\newcommand{\irisadviser}{}
+
+
+\newcommand{\iristitlepage}[2]{
+\newpage
+\thispagestyle{empty}
+\begin{spacing}{1}
+\begin{center}
+{\large \iristhesistype{} Thesis}\\
+\vspace*{\stretch{1}}\doublespacing
+{\LARGE\bf #1}\\
+\vspace*{\stretch{1}}
+{\large\bf \irisauthor{}}\\
+\vspace*{\stretch{3}}
+\irisadviser{}\\
+{\footnotesize Adviser}\\
+\vspace*{1.5\baselineskip}
+Prof.\ Dr.\ Bradley J.\ Nelson\\
+Institute of Robotics and Intelligent Systems\\
+Swiss Federal Institute of Technology Zurich (ETH)\\
+%Tannenstrasse 3\\
+%CH-8092 Zurich\\
+\vspace*{\stretch{2}}
+{\large #2}\\
+\vspace*{\stretch{2}}
+\begin{tabular*}{\linewidth}{l@{\extracolsep{\fill}}r}
+\includegraphics[height=13mm]{IRISlogo} & \includegraphics[height=13mm]{ETHlogo}
+\end{tabular*}
+\end{center}
+\end{spacing}
+\clearpage
+}

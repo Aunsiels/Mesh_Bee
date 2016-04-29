@@ -217,6 +217,9 @@ static AT_Command_ApiMode_t atCommandsApiMode[] =
 #endif
 
     { "IF", ATIF, NULL, API_showInfo_CallBack },
+    //
+    // list all nodes of the whole network, this will take a little more time
+    { "ATLA", ATLA, NULL, API_listAllNodes_CallBack },
 
 };
 

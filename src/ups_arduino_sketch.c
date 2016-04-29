@@ -51,8 +51,8 @@ void arduino_loop(void)
     vDelayMsec(100);
     suli_uart_printf(NULL, NULL, "random:%d\r\n", random());
 #elif TARGET_ROU
-	unsigned int hum = 0;
-	uint8 tmp[sizeof(tsApiSpec)]={0};
+    unsigned int hum = 0;
+    uint8 tmp[sizeof(tsApiSpec)]={0};
     tsApiSpec apiSpec;
 
 	//hum = read_temperature();

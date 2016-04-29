@@ -133,7 +133,7 @@ class MeshBee:
         data = reading[4+16:]
         tosend = "http://localhost:9000/measuredata?id=" + id_sensor
         tosend = tosend + "&dataType=" + data_type  + "&data=" + data
-        print(tosend)
+        print("Sending a read_sensors")
         f = urllib2.urlopen(tosend)
         f.close()
 
@@ -145,6 +145,9 @@ def main():
         if time.time() - last_time > 30:
             print("Read node")
             nodes = bee.print_nodes()
+            nodes = nodes.replace("\r", "")
+            nodes = nodes.replace("\n", "")
+            nodes = nodes.replace(" ", "")
             if nodes != "":
 		print("Sending update")
 		urllib2.urlopen("http://localhost:9000/updatesensors?s=" + nodes)
