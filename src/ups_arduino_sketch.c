@@ -31,12 +31,15 @@
 #include "humidity.h"
 
 ANALOG_T temp_pin;
+ANALOG_T lumi_pin;
+const int LUMI = 0;
 
 void arduino_setup(void)
 {
 #ifdef TARGET_ROU
     setNodeState(E_MODE_MCU);
-	init_humidity();
+	//init_humidity();
+	//suli_analog_init(&lumi_pin, LUMI);
 #endif
 
     suli_analog_init(&temp_pin, TEMP);
@@ -52,21 +55,33 @@ void arduino_loop(void)
 	uint8 tmp[sizeof(tsApiSpec)]={0};
     tsApiSpec apiSpec;
 
-	hum = read_temperature();
-    /*hum = random();*/ 
-
+	//hum = read_temperature();
+    //hum = random();
+    //hum = suli_analog_read(&lumi_pin);
+	hum = suli_analog_read(&temp_pin);
+	
     uint32 high = (uint32)(ZPS_u64AplZdoGetIeeeAddr() >> 32);
 	uint32 low  = (uint32)(ZPS_u64AplZdoGetIeeeAddr());
 	
-    sprintf(tmp, "TEMP%08x%08x%d\r\n",
+    /*sprintf(tmp, "TEMP%08x%08x%d\r\n",
                 high,
                 low,
-                hum);
-
+                hum);*/
+	
     /*sprintf(tmp, "RAND%08x%08x%d\r\n",
                 high,
                 low,
                 hum);*/
+				
+    /*sprintf(tmp, "LUMI%08x%08x%d\r\n",
+                high,
+                low,
+                hum);*/			
+    
+	sprintf(tmp, "TMPI%08x%08x%d\r\n",
+                high,
+                low,
+                hum);		
 
     PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp));
 
@@ -76,6 +91,21 @@ void arduino_loop(void)
     {
         suli_uart_printf(NULL, NULL, "<HeartBeat%d>\r\n", random());
     }
+	
+    /*hum = read_humidity();
+    sprintf(tmp, "HUMI%08x%08x%d\r\n",
+                high,
+                low,
+                hum);
+				
+	PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp));
+
+    size = i32CopyApiSpec(&apiSpec, tmp);
+    if(API_bSendToAirPort(UNICAST, 0x0000, tmp, size))
+    {
+        suli_uart_printf(NULL, NULL, "<HeartBeat%d>\r\n", random());
+    }*/
+	
 	vDelayMsec(3000);
 #else
     /* Finish user job */
