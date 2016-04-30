@@ -2,6 +2,7 @@
 
 import io
 import time
+from datetime import datetime
 import serial
 import urllib2
 
@@ -140,39 +141,24 @@ class MeshBee:
         self.meshbee.write(unicode(message))
         self.meshbee.flush()
 
-    def decrypt_message(self,  reading):
+    def decrypt_message(self,  data_type, id_sensor, data, time):
         """decrypt_message decrypt a message coming from a sensor
         and send the information to the server.
 
-        :param reading: the message to decrypt
+        :param data_type the type of data read
+	:param id_sensor The id of the sensor, here MAC address
+	:param data the data measured
+	:param time the time of the measure in milliseconds
         """
-        data_type = reading[0:4]
-        id_sensor = reading[4:4+16] #The mac address
-        data = reading[4+16:]
         tosend = "http://localhost:9000/measuredata?id=" + id_sensor
         tosend = tosend + "&dataType=" + data_type  + "&data=" + data
-        print("Sending a read_sensors")
+        tosend = tosend + "&time=" + str(time)
         try:
             f = urllib2.urlopen(tosend)
             f.close()
         except urllib2.URLError:
             print("No connection with the server")
             return 
-
-    def read_sensors(self):
-        """readSensors read a line from a sensor"""
-        if self.current_mode != "DATA":
-            if self.current_mode != "AT":
-                if not self.to_at_mode():
-                    print("Problem going to AT mode")
-                    return
-            if not self.to_data_mode():
-                print("Problem going to data mode")
-                return
-        reading = self.meshbee.readline()
-        if len(reading) < 20:
-            return
-        decrypt_message(reading)
 
     def checksum(self, check, payload):
         """checksum Check the payload
@@ -194,6 +180,19 @@ class MeshBee:
         self.meshbee.write(''.join(packet))
         self.meshbee.flush()
 
+    def send_time(self):
+        """send_time send the current time to all nodes"""
+        # I create the frame yhich calls APLA = 0x42
+        packet = [chr(0x7e), chr(0x07), chr(0x17), chr(0xec), chr(0x02), chr(0x80), chr(0x00), chr(0x00), chr(0x00), chr(0x00), chr(0x6e)]
+        time = int((datetime.utcnow() - datetime(1970,1,1)).total_seconds())
+        packet[6] = chr((time & (0xff << (8 * 3))) >> (8 * 3))
+        packet[7] = chr((time & (0xff << (8 * 2))) >> (8 * 2))
+        packet[8] = chr((time & (0xff << (8 * 1))) >> (8 * 1))
+        packet[9] = chr((time & (0xff << (8 * 0))) >> (8 * 0))
+        packet[-1] = chr(sum(map(lambda x : ord(x), packet[3:-1])) & 0xff)
+        self.meshbee.write(''.join(packet))
+        self.meshbee.flush()
+
     def api_data_frame(self, payload):
         """api_data_frame Read a data frame
 
@@ -202,12 +201,12 @@ class MeshBee:
         option = ord(payload[1])
         addr_short = map(lambda x: ord(x), payload[2:4])
         addr_long = map(lambda x : '{:02x}'.format(ord(x)), payload[4:12]) #MAC address
-        #TODO Use this MAC address
         length = ord(payload[12])
 	body = payload[13:13+length]
         print(addr_long, body)
-        #TODO remove \r\n
-        self.decrypt_message(body[:-2])
+        time = ((ord(body[4]) & 0xff) << (8 * 3)) + ((ord(body[5]) & 0xff) << (8 * 2)) + ((ord(body[6]) & 0xff) << (8 * 1)) + ((ord(body[7]) & 0xff))
+        time *= 1000
+        self.decrypt_message(body[0:4], ''.join(addr_long), body[8:], time)
 
     def api_topo_frame(self, payload):
         """api_data_frame Read a data frame
@@ -254,8 +253,8 @@ class MeshBee:
         """"send_mac_addresses send all mac addresses read to the server"""
         to_send = ''.join(self.mac_adresses)
         print('Node read', to_send)
-        if to_send:
-		print("Sending update")
+        if to_send != '':
+		print("I am sending ", to_send)
                 try:     
 		    f = urllib2.urlopen("http://localhost:9000/updatesensors?s=" + to_send)
                     f.close()
@@ -273,8 +272,11 @@ def main():
     """main The main loop"""
     last_time = time.time()
     bee = MeshBee()
+    bee.to_api_mode()
+    bee.send_time()
     while True:
         if time.time() - last_time > 30:
+            bee.send_time()
             bee.request_topo()
             last_time = time.time()
         bee.api_read_frame()
