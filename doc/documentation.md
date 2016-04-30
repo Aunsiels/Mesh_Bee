@@ -138,27 +138,27 @@ Here are some documents and links which can be useful while developing with the 
 
 ### Installation
 
-To be able to compile our code, we need to install the tools given by NXP. I will summurize instructions given on [this page](http://www.seeedstudio.com/wiki/Mesh_Bee#9.1_Firmware_Downloads).
+To be able to compile my code, I needed to install the tools given by NXP. I will summurize instructions given on [this page](http://www.seeedstudio.com/wiki/Mesh_Bee#9.1_Firmware_Downloads).
 
-To be able to compile the program, you will need to use **Windows** (sorry for that).
+To be able to compile the program, I will need to use **Windows** (I know, it is sad...).
 
-The first thing we need to check is if whether the programmer is well configured or not. You only need to do that if it is the first time you use it. Download [this program](http://www.seeedstudio.com/wiki/File:FT_Prog_v2.8.2.0.zip) and unzip it with your favorite unzipper. Connect the UartSBee v5 to PC, open **FT_Prog** and configure it like this:
+The first thing I needed to check is if whether the programmer is well configured or not. I only need to do that if it is the first time I use it. I downloaded [this program](http://www.seeedstudio.com/wiki/File:FT_Prog_v2.8.2.0.zip) and unziped it with my favorite unzipper. I connected the UartSBee v5 to PC, opened **FT_Prog** and configured it like this:
 
 ![programmer configuration](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/FT_Prog.png)
 
-**THIS IS VERY IMPORTANT ! BE SURE THE PROGRAMMER IS ON 3.3V ! OTHERWISE, YOU WILL DESTROY THE MESHBEE.** To do it, use the rigth switch (if the antenna is up) and put it up to 3.3.
+**THIS IS VERY IMPORTANT TO BE SURE THE PROGRAMMER IS ON 3.3V ! OTHERWISE, THAT WILL DESTROY THE MESHBEE.** To do it, I used the rigth switch (if the antenna is up) and put it up to 3.3.
 
-You also have to put the programmer in **PROG** mode thanks to the second switch, in a bottom position. This mode allows you to program the MeshBee.
+I also had to put the programmer in **PROG** mode thanks to the second switch, in a bottom position. This mode allows me to program the MeshBee.
 
-Now, we need the tool to program the Meshbee. [Download it](http://www.seeedstudio.com/wiki/File:Jennic_flash_programmer.zip) and unzip it. Connect the Meshbee to the programmer. The antenna **MUST** be on the same size than the usb port. You can now open **FlashGUI.exe**. This is the software to flash the MeshBee. You should create a shortcut somewhere because you will need it a lot. Here are the steps to program the Meshbee :
+I needed the tool to program the Meshbee. [I downloaded it](http://www.seeedstudio.com/wiki/File:Jennic_flash_programmer.zip) and unziped it. I connected the Meshbee to the programmer. The antenna **MUST** be on the same size than the usb port. I was then able to open **FlashGUI.exe**. This is the software to flash the MeshBee. I created a shortcut somewhere because I would need it a lot. Here are the steps I followed to program the Meshbee :
 
 ![Program meshbee](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/400px-Flash_programmer1.png.jpeg)
 
-You begin by choosing the binary file. There are in the **Mesh_Bee/build/output** directory. There are three of them : one for the coordinator, one for routers and one for end-nodes. Choose one to try. Next, you need to select the COM port, which is where your Meshbee is connect. You may have several of them if you have other devices connected. To know which one is the good one, unplug the programmer, look at the list, plug it again and the one which was added is your MeshBee. **Remember the number here**, after the COM. It will be usefull to communicate with the MeshBee later. Be sure that the Connect box is checked. Click on the Refresh button. If everything is ok, the MAC address of the Zigbee will be printed in the boxes. Otherwise, check that everything is connected and do the previous steps again. You can now program the MeshBee by pressing **Program**. You will normally receive a message which says that everything went well. You now have the program on the chip. Easy :)
+I begin by choosing the binary file. There are in the **Mesh_Bee/build/output** directory. There are three of them : one for the coordinator, one for routers and one for end-nodes. I choose one to try, coordinator one for instance (COO). Next, I need to select the COM port, which is where your Meshbee is connect. I may have several of them if I have other devices connected. To know which one is the good one, I unplug the programmer, look at the list, plug it again and the one which was added is my MeshBee. **I need to remember the number here**, after the COM. It will be usefull to communicate with the MeshBee later. I need to be sure that the Connect box is checked. I click on the Refresh button. If everything is ok, the MAC address of the Zigbee will be printed in the boxes. Otherwise, I check that everything is connected, in **PROG** mode and do the previous steps again. I can now program the MeshBee by pressing **Program**. I will normally receive a message which says that everything went well. I have the program on the chip.
 
-Let's install the SDK now. Download the [SDK Toolchain JN-SW-4041](http://cache.nxp.com/documents/other/JN-SW-4041.zip), the [SDK Zigbee Smart Energy JN-SW-4064](http://cache.nxp.com/documents/other/JN-SW-4064.zip) and the [SDK ZigBee Home Automation JN-SW-4067](http://cache.nxp.com/documents/other/JN-SW-4067.zip). Install them in the **same directory**, C:/Jennic for instance. This is important as the compiler will look for them there.
+Then, I installed the SDK. I downloaded the [SDK Toolchain JN-SW-4041](http://cache.nxp.com/documents/other/JN-SW-4041.zip), the [SDK Zigbee Smart Energy JN-SW-4064](http://cache.nxp.com/documents/other/JN-SW-4064.zip) and the [SDK ZigBee Home Automation JN-SW-4067](http://cache.nxp.com/documents/other/JN-SW-4067.zip). I install them in the **same directory**, C:/Jennic for instance. This is important as the compiler will look for them there.
 
-You now have a program called Jennic Bash Shell. Open it. It is a linux-like console. Go to the build directory with **cd Mesh_Bee/build/**. You have script here for compilation. I had problems with them so you should run directly the command in the build files directly in the console. For the coordinator :
+I was able to open a program called Jennic Bash Shell. I opened it. It is a linux-like console. I went to the build directory with **cd Mesh_Bee/build/**. I have scripts here for compilation. I had problems with them so I ran directly the commands in the build files directly in the console. For the coordinator :
 
 
 	make JENNIC_CHIP=JN5168 JENNIC_CHIP_FAMILY=JN516x PDM_BUILD_TYPE=_EEPROM TRACE_ALL=0 TARGET=COO clean
@@ -174,9 +174,9 @@ And for the end-node :
 	make JENNIC_CHIP=JN5168 JENNIC_CHIP_FAMILY=JN516x PDM_BUILD_TYPE=_EEPROM TRACE_ALL=0 TARGET=END clean
 	make JENNIC_CHIP=JN5168 JENNIC_CHIP_FAMILY=JN516x PDM_BUILD_TYPE=_EEPROM TRACE_ALL=0 TARGET=END all
 
-Compiling can be long. If you did something wrong, you will have an error message. Otherwise, the files in Mesh_Bee/build/output will be updated (check the date to be sure).
+Compiling can be long. If I did something wrong, you would have an error message. Otherwise, the files in Mesh_Bee/build/output are updated (I usually check the date to be sure).
 
-You should now know how the compile a program and flash it. It is time now to interact with the MeshBee.
+Now, I know how the compile a program and flash it. It is time now to interact with the MeshBee.
 
 ### AT MODE
 
