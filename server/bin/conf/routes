@@ -14,7 +14,7 @@ GET     /message                    controllers.AsyncController.message
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
-GET     /measuredata                controllers.HomeController.measureData(id : String, dataType : String, data : Float)
+GET     /measuredata                controllers.HomeController.measureData(id : String, dataType : String, data : Float, time : Long)
 
 GET     /socket/:id                 controllers.HomeController.socket(id : String)
 
@@ -22,10 +22,10 @@ GET     /chart/:id                  controllers.HomeController.chart(id : String
 
 GET     /sensor                     controllers.HomeController.sensor
 
-POST    /params                     controllers.HomeController.modifyParams
+POST  /params                     controllers.HomeController.modifyParams
 
 GET     /params                     controllers.HomeController.params
 
-GET		/sensors					controllers.HomeController.listSensors
+GET     /sensors					controllers.HomeController.listSensors
 
 GET     /updatesensors              controllers.HomeController.updateSensors(s : String)
