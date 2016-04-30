@@ -89,7 +89,6 @@
 #endif
 #endif
 
-
 #ifdef TARGET_END
 #define EN_UPS_SLEEP    //oliver add
 #endif
