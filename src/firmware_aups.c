@@ -146,24 +146,6 @@ void setNodeState(uint32 state)
     PDM_vSaveRecord(&g_sDevicePDDesc);
 }
 
-
-/****************************************************************************
- *
- * NAME: setLoopInterval
- *
- * DESCRIPTION:
- * set the interval of the arduino loop
- *
- * PARAMETERS: Name         RW  Usage
- *             interval      W  Loop interval in MS
- * RETURNS:
- * void
- *
- ****************************************************************************/
-void setLoopInterval(uint32 interval) {
-    g_sDevice.config.upsXtalPeriod = interval;
-}
-
 /****************************************************************************
  *
  * NAME: vDelayMsec

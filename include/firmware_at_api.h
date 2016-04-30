@@ -69,7 +69,9 @@ typedef enum
     ATOS = 0x66,  //ota status poll
     ATTP = 0x68,  //for test
     ATIO = 0x70,  //set IOs
-    ATAD = 0x72   //read ADC value from AD1 AD2 AD3 AD4
+    ATAD = 0x72,  //read ADC value from AD1 AD2 AD3 AD4
+	ATST = 0x80,  //Set time of a node
+    ATRT = 0x81   //Read time	
 }teAtIndex;
 
 /* API mode AT return value */

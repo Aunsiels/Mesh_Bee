@@ -28,6 +28,8 @@
 #include "common.h"
 #include "appapi.h"
 
+#define LOCAL_EP
+
 #ifdef RADIO_RECALIBRATION
 #include "recal.h"
 #endif
@@ -42,6 +44,11 @@
 #include "firmware_sleep.h" //for scheduleSleep()
 #include "suli.h"
 #include "firmware_rpc.h"
+#include "zcl.h"
+#include "zcl_option.h"
+#include "Time.h"
+#include "ovly.h"
+#include "se.h"
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
 /****************************************************************************/
@@ -102,6 +109,7 @@ IO_T SleepLed;
 /***        External Variables                                            ***/
 /****************************************************************************/
 
+static tsSE_MeterDevice sMeter;
 
 /****************************************************************************/
 /***        Local Functions                                               ***/
@@ -678,6 +686,184 @@ PUBLIC void deleteStackPDM()
     PDM_vSaveRecord(&g_sDevicePDDesc);
 }
 
+/****************************************************************************
+ *
+ * NAME: cbZCL_GeneralCallback
+ *
+ * DESCRIPTION:
+ * General callback for ZCL events
+ *
+ * RETURNS:
+ * void
+ *
+ ****************************************************************************/
+PRIVATE void cbZCL_GeneralCallback(tsZCL_CallBackEvent *psEvent)
+{
+	ZPS_teStatus eStatus;
+
+	switch(psEvent->eEventType)
+	{
+		case E_ZCL_CBET_LOCK_MUTEX:
+			vLockZCLMutex();
+		break;
+
+		case E_ZCL_CBET_UNLOCK_MUTEX:
+			vUnlockZCLMutex();
+		break;
+
+		case E_ZCL_CBET_UNHANDLED_EVENT:
+		break;
+
+		case E_ZCL_CBET_READ_ATTRIBUTES_RESPONSE:
+			DBG_vPrintf(TRACE_NODE, "EVT: Read attributes response\r\n");
+		break;
+
+		case E_ZCL_CBET_READ_REQUEST:
+			DBG_vPrintf(TRACE_NODE, "EVT: Read request\r\n");
+		break;
+
+		case E_ZCL_CBET_DEFAULT_RESPONSE:
+			DBG_vPrintf(TRACE_NODE, "EVT: Default response\r\n");
+		break;
+
+		case E_ZCL_CBET_ERROR:
+			eStatus = eZCL_GetLastZpsError();
+			DBG_vPrintf(TRACE_NODE, "EVT: Error - Stack returned 0x%x\r\n", eStatus);
+		break;
+
+		case E_ZCL_CBET_TIMER:
+		    DBG_vPrintf(TRACE_NODE, "EVT: Timer\r\n");
+		break;
+
+		case E_ZCL_CBET_ZIGBEE_EVENT:
+			DBG_vPrintf(TRACE_NODE, "EVT: ZigBee\r\n");
+		break;
+
+		case E_ZCL_CBET_CLUSTER_CUSTOM:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Custom\r\n");
+		break;
+
+		default:
+			DBG_vPrintf(TRACE_NODE, "Invalid event type\r\n");
+		break;
+	}
+}
+
+/****************************************************************************
+ *
+ * NAME: cbZCL_EndpointCallback
+ *
+ * DESCRIPTION:
+ * Endpoint specific callback for ZCL events
+ *
+ * RETURNS:
+ * void
+ *
+ ****************************************************************************/
+PRIVATE void cbZCL_EndpointCallback(tsZCL_CallBackEvent *psEvent)
+{
+	switch (psEvent->eEventType)
+	{
+		case E_ZCL_CBET_LOCK_MUTEX:
+			vLockZCLMutex();
+		break;
+
+		case E_ZCL_CBET_UNLOCK_MUTEX:
+			vUnlockZCLMutex();
+		break;
+
+		case E_ZCL_CBET_UNHANDLED_EVENT:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Unhandled event\r\n");
+		break;
+
+		case E_ZCL_CBET_READ_INDIVIDUAL_ATTRIBUTE_RESPONSE:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Read individual attribute response\r\n");
+			DBG_vPrintf(TRACE_NODE, "* Attr 0x%04x\r\n", psEvent->uMessage.sIndividualAttributeResponse.u16AttributeEnum);
+		break;
+
+		case E_ZCL_CBET_READ_ATTRIBUTES_RESPONSE:
+			DBG_vPrintf(TRACE_NODE, "Read Attributes Resp\r\n");
+			switch(psEvent->psClusterInstance->psClusterDefinition->u16ClusterEnum)
+			{
+				case  GENERAL_CLUSTER_ID_TIME:
+					vZCL_SetUTCTime(sMeter.sTimeCluster.utctTime);
+					u32LastTimeUpdate = sMeter.sTimeCluster.utctTime;				// Store when the time was last updated to trigger a refresh in 24 hrs
+					OS_eStopSWTimer(APP_UTC_Timer);
+					OS_eActivateTask(APP_MeterTask);
+				break;
+
+				default:
+				break;
+			}
+		break;
+
+		case E_ZCL_CBET_READ_REQUEST:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Read request\r\n");
+#ifdef METROLOGY_DISABLED
+#ifdef POT_READ
+
+			sMeter.sSimpleMeteringCluster.i24InstantaneousDemand = (1.2 * u16ReadPotValue());
+			DBG_vPrintf(TRACE_NODE, "\r\nPotVal: %d",sMeter.sSimpleMeteringCluster.i24InstantaneousDemand);
+#else
+			sMeter.sSimpleMeteringCluster.i24InstantaneousDemand = 500;
+#endif
+			sMeter.sSimpleMeteringCluster.u24Multiplier = 1;
+			sMeter.sSimpleMeteringCluster.u24Divisor = 1000;
+
+#endif
+		break;
+
+		case E_ZCL_CBET_DEFAULT_RESPONSE:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Default response\r\n");
+			DBG_vPrintf(TRACE_NODE, "Command ID: %d Status Code: %d\r\n", psEvent->uMessage.sDefaultResponse.u8CommandId, psEvent->uMessage.sDefaultResponse.u8StatusCode);
+		break;
+
+		case E_ZCL_CBET_ERROR:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Error\n");
+		break;
+
+		case E_ZCL_CBET_TIMER:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Timer\r\n");
+		break;
+
+		case E_ZCL_CBET_ZIGBEE_EVENT:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: ZigBee\r\n");
+		break;
+
+		case E_ZCL_CBET_CLUSTER_CUSTOM:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Custom\r\n");
+
+			switch(psEvent->uMessage.sClusterCustomMessage.u16ClusterId)
+			{
+#ifdef CLD_KEY_ESTABLISHMENT
+				case SE_CLUSTER_ID_KEY_ESTABLISHMENT:
+					vHandleKeyEstablishmentEvent(psEvent->uMessage.sClusterCustomMessage.pvCustomData);
+				break;
+#endif
+
+#ifdef CLD_TUNNELING
+				case SE_CLUSTER_ID_SMART_ENERGY_TUNNELING:
+
+
+					DBG_vPrintf(TRACE_NODE, "RXed tunnel custom command \r\n");
+					vHandleTunnelingEvent(psEvent->uMessage.sClusterCustomMessage.pvCustomData);
+				break;
+#endif
+
+
+				default:
+					DBG_vPrintf(TRACE_NODE, "Custom event for unknown cluster %d\r\n", psEvent->uMessage.sClusterCustomMessage.u16ClusterId);
+				break;
+			}
+		break;
+
+		default:
+			DBG_vPrintf(TRACE_NODE, "EP EVT: Invalid event type\r\n");
+		break;
+	}
+}
+
+
 
 /****************************************************************************
  *
@@ -692,6 +878,14 @@ PUBLIC void deleteStackPDM()
  ****************************************************************************/
 PUBLIC void node_vInitialise(void)
 {
+	
+#ifdef OVERLAYS_BUILD
+	sInitData.u32ImageOffset =  u16ImageStartSector * 0x8000;
+    sInitData.prGetMutex = vGrabLock;
+    sInitData.prReleaseMutex = vReleaseLock;
+    sInitData.prOverlayEvent = &vOverlayEvent;
+    OVLY_bInit(&sInitData);
+#endif
     PDM_eLoadRecord(&g_sDevicePDDesc, REC_ID1, &g_sDevice, sizeof(g_sDevice), FALSE);
     if (g_sDevice.magic != PDM_REC_MAGIC || g_sDevice.len != sizeof(g_sDevice))
     {
@@ -851,6 +1045,50 @@ PUBLIC void node_vInitialise(void)
 #endif
     }
     /* AT mode don't need init */
+	
+	
+	
+	teZCL_Status eZCL_Status;
+
+	/* Initialise smart energy functions */
+	eZCL_Status = eSE_Initialise(&cbZCL_GeneralCallback, apduZCL);
+	if (eZCL_Status != E_ZCL_SUCCESS)
+	{
+		DBG_vPrintf(TRACE_NODE, "eSE_Init ERR: %x\r\n", eZCL_Status);
+	}
+
+	/* Initialise Smart Energy Clusters etc */
+	eZCL_Status = eSE_RegisterMeterEndPoint(LOCAL_EP, &cbZCL_EndpointCallback, &sMeter);
+	if (eZCL_Status != E_ZCL_SUCCESS)
+	{
+		DBG_vPrintf(TRACE_NODE, "eSE_Register ERR: %\r\n", eZCL_Status);
+	}
+
+#ifdef CLD_KEY_ESTABLISHMENT
+	/* Load certificate and keys */
+	eSE_KECLoadKeys(LOCAL_EP, (uint8 *)au8CAPublicKey, (uint8 *)au8Certificate, au8PrivateKey);
+#endif
+
+	/* Restore the meter parameters here,
+	 * readings etc...
+	 */
+
+    sMeter.sSimpleMeteringCluster.u48CurrentTier1SummationDelivered = 0;
+    sMeter.sSimpleMeteringCluster.u48CurrentTier2SummationDelivered = 0;
+    sMeter.sSimpleMeteringCluster.u48CurrentTier3SummationDelivered = 0;
+    sMeter.sSimpleMeteringCluster.i24InstantaneousDemand = 0;
+
+#ifdef CLD_DRLC
+    sMeter.sDRLCCluster.u8UtilityEnrolmentGroup = 0x00;
+    sMeter.sDRLCCluster.u8StartRandomizeMinutes = 0x00;
+    sMeter.sDRLCCluster.u8StopRandomizeMinutes = 0x00;
+    sMeter.sDRLCCluster.u16DeviceClassValue = E_SE_DRLC_SMART_APPLIANCES_BIT;
+#endif
+
+    sMeter.sBasicCluster.ePowerSource = E_CLD_BAS_PS_SINGLE_PHASE_MAINS;
+    sMeter.sSimpleMeteringCluster.eMeteringDeviceType = E_CLD_SM_MDT_ELECTRIC;
+
+
 }
 
 

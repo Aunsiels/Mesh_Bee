@@ -37,6 +37,8 @@
 #include "firmware_cmi.h"
 #include "firmware_sleep.h"
 #include "suli.h"
+#include "zcl.h"
+#include "zcl_option.h"
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
 /****************************************************************************/
@@ -58,9 +60,10 @@ int API_Adc_callBack(tsApiSpec *inputApiSpec, tsApiSpec *retApiSpec, uint16 *reg
 int API_i32Gpio_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 int API_listAllNodes_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 int API_showInfo_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
-
+int API_setTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 
 int AT_printTT(uint16 *regAddr);
+int AT_readTime(uint16 *regAddr);
 int AT_reboot(uint16 *regAddr);
 int AT_powerUpActionSet(uint16 *regAddr);
 int AT_enterDataMode(uint16 *regAddr);
@@ -165,7 +168,10 @@ static AT_Command_t atCommands[] =
 #endif
     { "TT", &attt_dummy_reg, DEC, 1, 5, AT_printTT, AT_TestTest },
 
-    { "RP", NULL, DEC, 0, 0, NULL, AT_RPC }
+    { "RP", NULL, DEC, 0, 0, NULL, AT_RPC },
+	
+	//Read time
+	{ "RT", NULL, DEC, 0, 0, NULL, AT_readTime}
 };
 
 /*
@@ -220,10 +226,22 @@ static AT_Command_ApiMode_t atCommandsApiMode[] =
     //
     // list all nodes of the whole network, this will take a little more time
     { "ATLA", ATLA, NULL, API_listAllNodes_CallBack },
+	
+	{"ATST", ATST, NULL, API_setTime_CallBack},
 
 };
 
-
+// Callback to read time in AT mode
+int AT_readTime(uint16 *regAddr)
+{
+	uart_printf("Readtime\r\n");
+	if (bZCL_GetTimeHasBeenSynchronised()){
+        uart_printf("Time : %d s\r\n", u32ZCL_GetUTCTime());
+	} else {
+		uart_printf("Nothing to read\r\n");
+	}
+    return OK;
+}
 
 int AT_SleepTest(uint16 *regAddr)
 {
@@ -240,6 +258,7 @@ int AT_RPC(uint16 *regAddr)
     RPC_vCaller(0x00158d0000355273, tmp);
     return OK;
 }
+
 /****************************************************************************
  *
  * NAME: calCheckSum
@@ -1464,22 +1483,46 @@ int API_listAllNodes_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uin
 
     if (API_LOCAL_AT_REQ == reqApiSpec->teApiIdentifier)
     {
-        tsLocalAtResp localAtResp;
-        memset(&localAtResp, 0, sizeof(tsLocalAtResp));
+        //tsLocalAtResp localAtResp;
+        //memset(&localAtResp, 0, sizeof(tsLocalAtResp));
 
         /* Assemble LocalAtResp */
-        assembleLocalAtResp(&localAtResp,
+        /*assembleLocalAtResp(&localAtResp,
                             reqApiSpec->payload.localAtReq.frameId,
                             ATLA,
                             AT_OK,
                             (uint8 *)&topoInfo,
-                            sizeof(tsTopoInfo));
+                            sizeof(tsTopoInfo));*/
 
         /* Assemble apiSpec */
-        assembleApiSpec(respApiSpec,
+        /*assembleApiSpec(respApiSpec,
                         API_LOCAL_AT_RESP,
                         (uint8 *)&localAtResp,
-                        sizeof(tsLocalAtResp));
+                        sizeof(tsLocalAtResp));*/
+        uint8 tmp[sizeof(tsApiSpec)] = { 0 };
+        tsApiSpec apiSpec;
+        memset(&apiSpec, 0, sizeof(tsApiSpec));
+
+        tsNwkTopoReq nwkTopoReq;
+        memset(&nwkTopoReq, 0, sizeof(tsNwkTopoReq));
+
+        nwkTopoReq.reqCmd = dummy_value;
+
+        /* Package Nwk Topo require apiSpec */
+        apiSpec.startDelimiter = API_START_DELIMITER;
+        apiSpec.length = sizeof(tsNwkTopoReq);
+        apiSpec.teApiIdentifier = API_TOPO_REQ;
+        apiSpec.payload.nwkTopoReq = nwkTopoReq;
+        apiSpec.checkSum = calCheckSum((uint8 *)&nwkTopoReq, apiSpec.length);
+
+        int size = i32CopyApiSpec(&apiSpec, tmp);
+        if (API_bSendToAirPort(BROADCAST, 0, tmp, size))
+        {
+			return OK;
+		} else
+		{
+			return ERR;
+		}
     } else if (API_REMOTE_AT_REQ == reqApiSpec->teApiIdentifier)
     {
         tsRemoteAtResp remoteAtResp;
@@ -1499,6 +1542,33 @@ int API_listAllNodes_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uin
                         (uint8 *)&remoteAtResp,
                         sizeof(tsRemoteAtResp));
     }
+    return OK;
+}
+
+/****************************************************************************
+*
+* NAME: API_setTime_CallBack
+*
+* DESCRIPTION:
+*
+*
+* PARAMETERS: Name         RW  Usage
+*
+* RETURNS:
+* int
+* apiSpec, returned tsApiSpec Frame
+*
+****************************************************************************/
+int API_setTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr)
+{
+	uint32 time;
+    if (API_LOCAL_AT_REQ == reqApiSpec->teApiIdentifier)
+    {
+	    memcpy(&time, reqApiSpec->payload.localAtReq.value, 4);
+		vZCL_SetUTCTime(time);
+		//Set master ?
+    }
+	
     return OK;
 }
 
