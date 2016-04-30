@@ -1562,12 +1562,8 @@ int API_listAllNodes_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uin
 int API_setTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr)
 {
 	uint32 time;
-    if (API_LOCAL_AT_REQ == reqApiSpec->teApiIdentifier)
-    {
-	    memcpy(&time, reqApiSpec->payload.localAtReq.value, 4);
-		vZCL_SetUTCTime(time);
-		//Set master ?
-    }
+	memcpy(&time, reqApiSpec->payload.localAtReq.value, 4);
+	vZCL_SetUTCTime(time);
 	
     return OK;
 }
@@ -1816,7 +1812,13 @@ int API_i32ApiFrmProc(tsApiSpec *apiSpec)
             }
             if (!ret) result = ERR;
             else result = OK;
-            /* Now, don't reply here in local device */
+            
+			/* UART ACK */
+            if (0 == (apiSpec->payload.localAtReq.option & OPTION_ACK_MASK))
+            {
+                CMI_vLocalAckDistributor(&retApiSpec);
+            }
+            result = OK;
             break;
         }
 
