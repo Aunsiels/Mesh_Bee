@@ -62,11 +62,11 @@ I summarized everything in an [odt file](https://github.com/Aunsiels/Mesh_Bee/bl
 
 ![conso-vs-data-rate](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/conso_vs_data_rate.png) 
 
-We can see that each protocole are in different areas and so, we need to choose the one which will be good for us. For that, we have to design a cost function according to our need. My function has four parameters (for the four parameters) that can be tuned. I also considered the chips availible (some are hard it get), how easy it is to program it, to get help, and the prices. Finally I decided to go for **Zigbee**
+We can see that each protocole are in different areas and so, I need to choose the one which will be good for me. For that, I have to design a cost function according to my needs. My function has four parameters (for the four parameters) that can be tuned. I also considered the chips availible (some are hard it get), how easy it is to program it, to get help, and the prices. Finally I decided to go for **Zigbee**
 
 ### Choosing a Zigbee Chip
 
-There are plenty of Zigbee chips availible. What we would like to do is a chip which control both Zigbee and a sensor (it does not require power). So, we need to be able to program the prototyping chip directly, without having to use an additional board like an arduino. We also need to be able to read sensors thanks to i2c and ADC. We found a nice design, based on a NXP chip : **MeshBee**. It is **open source** (both software and hardware) and easy to prototype with. Thus, thanks to it, we can first try to write a program to test if our prototype is working and then design a new chip in which sensors are directly integrated. That will make the final result smaller.
+There are plenty of Zigbee chips avalible. What I would like to find is a chip which controls both Zigbee and a sensor. So, I need to be able to program the prototyping chip directly, without having to use an additional board like an arduino. I also need to be able to read sensors thanks to i2c and ADC. I found a nice design, based on a NXP chip : the **MeshBee**. It is **open source** (both software and hardware) and easy to prototype with. Thus, thanks to it, I can first try to write a program to test if my prototype is working and then design a new chip in which sensors are directly integrated. That will make the final result smaller.
 
 ## The System Architecture
 
@@ -74,25 +74,27 @@ For now, the system architecture is composed of three parts :
 
 * The **MeshBee network** with sensors
 * An **interface** between MeshBee and a server
-* A **server** which collects information and display it for the user
+* A **HTTP server** which collects information and display it for the user
 
-In my implementation, both the interface and the server are on the **Raspberry Pi** (3) which creates a WiFi network. So, people can connect to it and visualize data.
+I chose this architecture for several reeason. The final goal will be to visualize in some way data I measure. So, I need a screen somewhere. What would be nice would be that any device can print those data, and so a webpage is the most practical way. So, if a user is close enough of the Raspberry Pi, he could connect directly with his smartphone with Wifi (which is on all smartphone) or if the Raspberry Pi is connected to the internet, he can access it from everywhere.
+
+In my implementation, both the interface and the server are on  a **Raspberry Pi** (3) which creates a WiFi network. So, people can connect to it and visualize data.
 
 For the Zigbee architecture, I use the **mesh architecture**. There are three kinds of nodes :
 
-* **A _unique_ coordinator** : it is in charge of organizing the network and is directly linked to the Raspberry Pi.
+* **A *unique* coordinator** : it is in charge of organizing the network and is directly linked to the Raspberry Pi.
 * **Router** : it is able to propagate the network and is an access point to the network.
 * **End-node** : it can only connect to the network.
 
 ![zigbee_network](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/meshbee_network_architecture.jpg) 
 
-For the interface between the Zigbee world and the server, we use a serial communication. The data are then read by a **python script** which transform them into **http request** for the server. Then, the server organizes everything and is ready to display in real-time information from sensors.
+For the interface between the Zigbee world and the server, I use a serial communication. The data are then read by a **python script** which transform them into **http request** for the server. Then, the server organizes everything and is ready to display in real-time information from sensors.
 
 ![global_architecture](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/global_network.jpg) 
 
 ## The Embedded Software
 
-The embedded software on the MeshBee have read data from a sensor and send information through the network to the main node, the coordinator. Let's see how it is done.
+The embedded software on the MeshBee have to read data from a sensor and send information through the network to the main node, the coordinator.
 
 ### The MeshBee Framework
 
@@ -100,18 +102,18 @@ First things first, I need to understand how MeshBee works.
 
 ![meshbee](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/MeshBeeArchitecture.jpg)
 
-The MeshBee firmware is built on an OS provided by NXP, **JenOs**, and a **SDK for Low Energy Zigbee**, also provided by NXP. It is important to know that because sometimes, we shall not find the functions we are looking for (as interrupt-liked functions) in the MeshBee Framework but directly in the librairy provided by NXP.
+The MeshBee firmware is built on an OS provided by NXP, **JenOs**, and a **SDK for Low Energy Zigbee**, also provided by NXP. It is important to know that because sometimes, I shall not find the functions I am looking for (as interrupt-liked functions) in the MeshBee Framework but directly in the librairy provided by NXP.
 
-Let's look inside the firmware. If you are used to **arduino programming**, you will find the same kind of architecture. The AUPS (Arduino-ful User Programming Space) provides you two functions : a **setup and a loop function**. The setup function is called during the initialization of the system and the loop function is called periodically (it is possible to specify the period).
+Let's look inside the firmware. I am used to **arduino programming**. I found the same kind of architecture. The AUPS (Arduino-ful User Programming Space) provides me two functions : a **setup and a loop function**. The setup function is called during the initialization of the system and the loop function is called periodically (it is possible to specify the period).
 
-In the middle, you can see the four modes of the MeshBee :
+In the middle, there are the four modes of the MeshBee :
 
-* **AT** : this is an **interactive mode**. You just have to send easy commands to the MeshBee and it will answer in a beautiful way. To go to AT mode from everywhere, you have to type ***+++***
-* **API** : this is a more effective and formatted way to communicate with the MCU. Thanks to it, you can call AT function from inside and outside the MCU, via UART for example. You can also send query to other nodes through the network thanks to the API commands.
-* **MCU** : this is the **arduino mode**. If you are not in this mode, the arduino loop will not be executed.
+* **AT** : this is an **interactive mode**. I just have to send easy commands to the MeshBee and it will answer in a beautiful way. To go to AT mode from everywhere, I have to type ***+++***
+* **API** : this is a more effective and formatted way to communicate with the MCU. Thanks to it, I can call AT function from inside and outside the MCU, via UART for example. I can also send query to other nodes through the network thanks to the API commands.
+* **MCU** : this is the **arduino mode**. If I am not in this mode, the arduino loop will not be executed.
 * **Data** : this is a **transparent mode** : all data received on the Zigbee network are directly transmitted to UART and all data sent via UART are broadcasted on the network.
 
-The last thing to understand about this firmware is the **Suli** interface. This is a general librairy created by SeeedStudio. The goal is to make the interaction with GPIOs easier. So, for I2C, ADC,... we shall not need to call the functions from JenOs but we can use the easy functions provided by suli.
+The last thing to understand about this firmware is the **Suli** interface. This is a general librairy created by SeeedStudio. The goal is to make the interaction with GPIOs easier. So, for I2C, ADC,... I shall not need to call the functions from JenOs but we can use the easy functions provided by suli. However, I will need more advanced functions later.
 
 ### Important Documents
 
