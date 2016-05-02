@@ -1,12 +1,12 @@
 #Documentation of MeshBee Project by Julien Romero
 
-This document will present and explain my work during my **semester project**. The goal is to build a **wireless network of sensors for performance analysis**. I began the project in February 2016. I hope that thanks to this document you will be able to understand what I did, why I did it and to continue my work.
+This document will present and explain my work during my **semester project**. The goal is to build a **wireless network of sensors for performance analysis**. The project began in February 2016. I hope that thanks to this document you will be able to understand what I did, why I did it and to continue my work.
 
 ## Why MeshBee ?
 
 ### Choosing a Wireless Protocole
 
-The first thing I had to think about was how to communicate. There are plenty of availible protocols and I have to choose among them the one which will best fit to my needs. I considered eight protocols : ZigBee, Bluetooth, BLE, Rubee, Zwave, ANT/ANT+, EnOcean and WiFi. To evaluate them, I chose four caracteristics : the data rate, the size,  the consumption and the range. Of course, this properties depends of a lot of parameters : hardware, environment,... So, I tried to choose values which appear in most of the description. The use cases are also useful to know what kind of things are possible with a protocol.
+The first thing to think about was how to communicate. There are plenty of availible protocols and we had to choose among them the one which will best fit to our needs. Eight protocols were considered: ZigBee, Bluetooth, BLE, Rubee, Zwave, ANT/ANT+, EnOcean and WiFi. To evaluate them, four caracteristics were choosen: the data rate, the size,  the consumption and the range. Of course, this properties depends of a lot of parameters : hardware, environment,... So, we tried to choose values which appeared in most of the description. The use cases are also useful to know what kind of things are possible with a protocol.
 
 #### Zigbee
 
@@ -58,62 +58,62 @@ The **Bluetooth Low Energy**, just like Bluetooth, works at 2.4GHz. We can see i
 
 #### Putting Everything Together
 
-I summarized everything in an [odt file](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/semester_project_protocols.ods). The results are on sheet 1 and 2. I tried to plot some results.
+Everything was summurized in an [odt file](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/semester_project_protocols.ods). The results are on sheet 1 and 2 and some results were ploted.
 
 ![conso-vs-data-rate](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/conso_vs_data_rate.png) 
 
-We can see that each protocole are in different areas and so, I need to choose the one which will be good for me. For that, I have to design a cost function according to my needs. My function has four parameters (for the four parameters) that can be tuned. I also considered the chips availible (some are hard it get), how easy it is to program it, to get help, and the prices. Finally I decided to go for **Zigbee**
+We can see that each protocole is in a different area and so, we need to choose the one which will be good for us. For that, a cost function was design according to our needs. The function has four parameters (for the four protocol caracteristics) that can be tuned. The chips availible were also considered. Are  they hard it get ? How easy is it to program them ? Is their help for it somewhere ? What are the prices. Finally we decided to go for **Zigbee**
 
 ### Choosing a Zigbee Chip
 
-There are plenty of Zigbee chips avalible. What I would like to find is a chip which controls both Zigbee and a sensor. So, I need to be able to program the prototyping chip directly, without having to use an additional board like an arduino. I also need to be able to read sensors thanks to i2c and ADC. I found a nice design, based on a NXP chip : the **MeshBee**. It is **open source** (both software and hardware) and easy to prototype with. Thus, thanks to it, I can first try to write a program to test if my prototype is working and then design a new chip in which sensors are directly integrated. That will make the final result smaller.
+There are plenty of Zigbee chips avalible. What we wanted to find is a chip which controls both Zigbee and a sensor. So, the prototype can be programmed on the chip directly, without having to use an additional board like an arduino. We also needed to be able to read sensors thanks to i2c and ADC. We found a nice design, based on a NXP chip : the **MeshBee**. It is **open source** (both software and hardware) and easy to prototype with. Thus, thanks to it, we were able to first try to write a program to test if my prototype was working and then we designed a new chip in which sensors were directly integrated. That made the final result smaller.
 
 ## The System Architecture
 
-For now, the system architecture is composed of three parts :
+The system architecture was composed of three parts :
 
 * The **MeshBee network** with sensors
 * An **interface** between MeshBee and a server
-* A **HTTP server** which collects information and display it for the user
+* A **HTTP server** which collected information and displayed it for the user
 
-I chose this architecture for several reeason. The final goal will be to visualize in some way data I measure. So, I need a screen somewhere. What would be nice would be that any device can print those data, and so a webpage is the most practical way. So, if a user is close enough of the Raspberry Pi, he could connect directly with his smartphone with Wifi (which is on all smartphone) or if the Raspberry Pi is connected to the internet, he can access it from everywhere.
+This choose of architecture was driven by several reason. The final goal would be to visualize in some way the measured data. So, a screen was needed somewhere. What would be nice would be that any device can print those data, and so a webpage was the most practical way. So, if a user was close enough to the Raspberry Pi, he could connect directly with his smartphone with Wifi (which is on all smartphone) or if the Raspberry Pi was connected to the internet, he was able to access it from everywhere.
 
-In my implementation, both the interface and the server are on  a **Raspberry Pi** (3) which creates a WiFi network. So, people can connect to it and visualize data.
+In our implementation, both the interface and the server were on  a **Raspberry Pi** (3) which created a WiFi network. So, people were able to connect to it and to visualize data.
 
-For the Zigbee architecture, I use the **mesh architecture**. There are three kinds of nodes :
+For the Zigbee architecture, the **mesh architecture** was used. There were three kinds of nodes :
 
-* **A *unique* coordinator** : it is in charge of organizing the network and is directly linked to the Raspberry Pi.
-* **Router** : it is able to propagate the network and is an access point to the network.
-* **End-node** : it can only connect to the network.
+* **A *unique* coordinator** : it was in charge of organizing the network and was directly linked to the Raspberry Pi.
+* **Router** : it was able to propagate the network and was an access point to the network.
+* **End-node** : it was only able to connect to the network.
 
-![zigbee_network](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/meshbee_network_architecture.jpg) 
+![zigbee network](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/meshbee_network_architecture.jpg) 
 
-For the interface between the Zigbee world and the server, I use a serial communication. The data are then read by a **python script** which transform them into **http request** for the server. Then, the server organizes everything and is ready to display in real-time information from sensors.
+For the interface between the Zigbee world and the server, a serial communication was used. The data were then read by a **python script** which transformed them into **http request** for the server. Then, the server organized everything and was ready to display, in real-time, information from sensors.
 
-![global_architecture](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/global_network.jpg) 
+![global architecture](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/global_network.jpg) 
 
 ## The Embedded Software
 
-The embedded software on the MeshBee have to read data from a sensor and send information through the network to the main node, the coordinator.
+The embedded software on the MeshBee have to read data from a sensor and to send information through the network to the main node, the coordinator.
 
 ### The MeshBee Framework
 
-First things first, I need to understand how MeshBee works.
+First things first, we needed to understand how MeshBee works.
 
 ![meshbee](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/MeshBeeArchitecture.jpg)
 
-The MeshBee firmware is built on an OS provided by NXP, **JenOs**, and a **SDK for Low Energy Zigbee**, also provided by NXP. It is important to know that because sometimes, I shall not find the functions I am looking for (as interrupt-liked functions) in the MeshBee Framework but directly in the librairy provided by NXP.
+The MeshBee firmware is built on an OS provided by NXP, **JenOs**, and a **SDK for Low Energy Zigbee**, also provided by NXP. It is important to know that because sometimes, the functions we were looking for (as interrupt-liked functions) were not in the MeshBee Framework but directly in the librairy provided by NXP.
 
-Let's look inside the firmware. I am used to **arduino programming**. I found the same kind of architecture. The AUPS (Arduino-ful User Programming Space) provides me two functions : a **setup and a loop function**. The setup function is called during the initialization of the system and the loop function is called periodically (it is possible to specify the period).
+Inside the MeshBee, we found a **arduino programming** environment. The AUPS (Arduino-ful User Programming Space) provided two functions : a **setup and a loop function**. The setup function was called during the initialization of the system and the loop function was called periodically (it was possible to specify the period).
 
-In the middle, there are the four modes of the MeshBee :
+In the middle of the picture, there are the four modes of the MeshBee :
 
-* **AT** : this is an **interactive mode**. I just have to send easy commands to the MeshBee and it will answer in a beautiful way. To go to AT mode from everywhere, I have to type ***+++***
-* **API** : this is a more effective and formatted way to communicate with the MCU. Thanks to it, I can call AT function from inside and outside the MCU, via UART for example. I can also send query to other nodes through the network thanks to the API commands.
-* **MCU** : this is the **arduino mode**. If I am not in this mode, the arduino loop will not be executed.
+* **AT** : this is an **interactive mode**. Easy commands have to be send to the MeshBee and it answers in an user-friendly way. To go to AT mode from everywhere, ***+++*** have to be send.
+* **API** : this is a more effective and formatted way to communicate with the MCU. Thanks to it, AT function can be called from inside and outside the MCU, via UART for example. It is also possible send query to other nodes through the network thanks to the API commands.
+* **MCU** : this is the **arduino mode**. The arduino loop is only executed if the MeshBee is in this mode.
 * **Data** : this is a **transparent mode** : all data received on the Zigbee network are directly transmitted to UART and all data sent via UART are broadcasted on the network.
 
-The last thing to understand about this firmware is the **Suli** interface. This is a general librairy created by SeeedStudio. The goal is to make the interaction with GPIOs easier. So, for I2C, ADC,... I shall not need to call the functions from JenOs but we can use the easy functions provided by suli. However, I will need more advanced functions later.
+The last thing to understand about this firmware is the **Suli** interface. This is a general librairy created by SeeedStudio. The goal is to make the interaction with GPIOs easier. So, for I2C, ADC,... there is no need to call the functions from JenOs but the easy functions provided by suli can be used. However, we needed more advanced functions.
 
 ### Important Documents
 
@@ -138,27 +138,27 @@ Here are some documents and links which can be useful while developing with the 
 
 ### Installation
 
-To be able to compile my code, I needed to install the tools given by NXP. I will summurize instructions given on [this page](http://www.seeedstudio.com/wiki/Mesh_Bee#9.1_Firmware_Downloads).
+To be able to compile the code, we needed to install the tools given by NXP. Here are summurized instructions given on [this page](http://www.seeedstudio.com/wiki/Mesh_Bee#9.1_Firmware_Downloads).
 
-To be able to compile the program, I will need to use **Windows** (I know, it is sad...).
+To be able to compile the program, we needed to use **Windows**.
 
-The first thing I needed to check is if whether the programmer is well configured or not. I only need to do that if it is the first time I use it. I downloaded [this program](http://www.seeedstudio.com/wiki/File:FT_Prog_v2.8.2.0.zip) and unziped it with my favorite unzipper. I connected the UartSBee v5 to PC, opened **FT_Prog** and configured it like this:
+The first thing we needed to check is if whether the programmer is well configured or not. We only needed to do that if it was the first time we use it. We downloaded [this program](http://www.seeedstudio.com/wiki/File:FT_Prog_v2.8.2.0.zip) and unziped it with our favorite unzipper. We connected the UartSBee v5 to PC, opened **FT_Prog** and configured it like this:
 
 ![programmer configuration](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/FT_Prog.png)
 
-**THIS IS VERY IMPORTANT TO BE SURE THE PROGRAMMER IS ON 3.3V ! OTHERWISE, THAT WILL DESTROY THE MESHBEE.** To do it, I used the rigth switch (if the antenna is up) and put it up to 3.3.
+**THIS IS VERY IMPORTANT TO BE SURE THE PROGRAMMER IS ON 3.3V ! OTHERWISE, THAT DESTROYS THE MESHBEE.** To do it, we used the rigth switch (if the antenna is up) and put it up to 3.3.
 
-I also had to put the programmer in **PROG** mode thanks to the second switch, in a bottom position. This mode allows me to program the MeshBee.
+We also had to put the programmer in **PROG** mode thanks to the second switch, in the bottom position. This mode allowed us to program the MeshBee.
 
-I needed the tool to program the Meshbee. [I downloaded it](http://www.seeedstudio.com/wiki/File:Jennic_flash_programmer.zip) and unziped it. I connected the Meshbee to the programmer. The antenna **MUST** be on the same size than the usb port. I was then able to open **FlashGUI.exe**. This is the software to flash the MeshBee. I created a shortcut somewhere because I would need it a lot. Here are the steps I followed to program the Meshbee :
+We needed the tool to program the Meshbee. [We downloaded it](http://www.seeedstudio.com/wiki/File:Jennic_flash_programmer.zip) and unziped it. We connected the Meshbee to the programmer. The antenna **MUST** be on the same size than the usb port. We were then able to open **FlashGUI.exe**. This is the software to flash the MeshBee. We created a shortcut somewhere because we needed it a lot. Here are the steps we followed to program the Meshbee :
 
 ![Program meshbee](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/400px-Flash_programmer1.png.jpeg)
 
-I begin by choosing the binary file. There are in the **Mesh_Bee/build/output** directory. There are three of them : one for the coordinator, one for routers and one for end-nodes. I choose one to try, coordinator one for instance (COO). Next, I need to select the COM port, which is where your Meshbee is connect. I may have several of them if I have other devices connected. To know which one is the good one, I unplug the programmer, look at the list, plug it again and the one which was added is my MeshBee. **I need to remember the number here**, after the COM. It will be usefull to communicate with the MeshBee later. I need to be sure that the Connect box is checked. I click on the Refresh button. If everything is ok, the MAC address of the Zigbee will be printed in the boxes. Otherwise, I check that everything is connected, in **PROG** mode and do the previous steps again. I can now program the MeshBee by pressing **Program**. I will normally receive a message which says that everything went well. I have the program on the chip.
+We began by choosing the binary file. There were in the **Mesh_Bee/build/output** directory. There were three of them : one for the coordinator, one for routers and one for end-nodes. We choosed one to try, the coordinator one for instance (COO). Next, we needed to select the COM port, which was where our Meshbee was connected. We had several of them as we had other devices connected. To know which one was the good one, we unpluged the programmer, looked at the list, pluged it again and the one which was added was my MeshBee. **We needed to remember the number here**, after the COM. It was useful to communicate with the MeshBee later. We needed to be sure that the **Connect** box was checked. We clicked on the Refresh button. If everything was ok, the MAC address of the Zigbee would be printed in the boxes. Otherwise, we checked that everything was well connected, in **PROG** mode and we did the previous steps again. We were then able to program the MeshBee by pressing **Program**. We normally received a message which said that everything went well. We had the program on the chip.
 
-Then, I installed the SDK. I downloaded the [SDK Toolchain JN-SW-4041](http://cache.nxp.com/documents/other/JN-SW-4041.zip), the [SDK Zigbee Smart Energy JN-SW-4064](http://cache.nxp.com/documents/other/JN-SW-4064.zip) and the [SDK ZigBee Home Automation JN-SW-4067](http://cache.nxp.com/documents/other/JN-SW-4067.zip). I install them in the **same directory**, C:/Jennic for instance. This is important as the compiler will look for them there.
+Then, we installed the SDK. We downloaded the [SDK Toolchain JN-SW-4041](http://cache.nxp.com/documents/other/JN-SW-4041.zip), the [SDK Zigbee Smart Energy JN-SW-4064](http://cache.nxp.com/documents/other/JN-SW-4064.zip) and the [SDK ZigBee Home Automation JN-SW-4067](http://cache.nxp.com/documents/other/JN-SW-4067.zip). We installed them in the **same directory**, C:/Jennic for instance. This is important as the compiler will look for them there.
 
-I was able to open a program called Jennic Bash Shell. I opened it. It is a linux-like console. I went to the build directory with **cd Mesh_Bee/build/**. I have scripts here for compilation. I had problems with them so I ran directly the commands in the build files directly in the console. For the coordinator :
+We were able to open a program called Jennic Bash Shell. We opened it. It was a linux-like console. We went to the build directory with **cd Mesh_Bee/build/**. There were scripts here for compilation. We had problems with them so we ran directly the commands in the build files directly in the console. For the coordinator :
 
 
 	make JENNIC_CHIP=JN5168 JENNIC_CHIP_FAMILY=JN516x PDM_BUILD_TYPE=_EEPROM TRACE_ALL=0 TARGET=COO clean
@@ -174,53 +174,53 @@ And for the end-node :
 	make JENNIC_CHIP=JN5168 JENNIC_CHIP_FAMILY=JN516x PDM_BUILD_TYPE=_EEPROM TRACE_ALL=0 TARGET=END clean
 	make JENNIC_CHIP=JN5168 JENNIC_CHIP_FAMILY=JN516x PDM_BUILD_TYPE=_EEPROM TRACE_ALL=0 TARGET=END all
 
-Compiling can be long. If I did something wrong, you would have an error message. Otherwise, the files in Mesh_Bee/build/output are updated (I usually check the date to be sure).
+Compiling can be long. If we did something wrong, you would have an error message. Otherwise, the files in Mesh_Bee/build/output were updated (we usually checked the date to be sure).
 
-Now, I know how the compile a program and flash it. It is time now to interact with the MeshBee.
+We then knew how the compile a program and flash it. It was time then to interact with the MeshBee.
 
 ### AT MODE
 
-We are ready to communicate with the MeshBee. This communication uses **UART1**, so any USB-to-TTL working at **3.3V (this is super important)** device would work. We are going to use the programmer for now. Just switch the left switch to **UART1** (up).
+We had everything to compile so we were ready to communicate with the MeshBee. This communication used **UART1**, so any USB-to-TTL working at **3.3V (this is super important)** device would work. At that time, we only used the programmer. We just switched the left switch to **UART1** (up).
 
-We need a tool to communicate. I used [realterm](http://realterm.sourceforge.net/) on windows but feel free to use to one you like. [Download](https://sourceforge.net/projects/realterm/files/Realterm/) the latest version and install it.
+We needed a tool to communicate. After looking for a serial terminal on Windows, we used [realterm](http://realterm.sourceforge.net/) but anything elso would work. [We downloaded](https://sourceforge.net/projects/realterm/files/Realterm/) the latest version and installed it.
 
 ![realterm](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/realterm1.png)
 
-When you open it, they ask you to choose a display mode. In **AT mode**, we simply communicate with ascii so there is nothing to do here now. Go to the second tab, **PORT**. This is were we configure the communication. The Baud is **115200**, the is **no parity bit**, **8 data bits**, **1 stop bit** and **no flow control**. Do you remember the number after **COM** when you programmed the Meshbee ? You have to put this number in the Port field.
+When we opened it, we were asked to choose a display mode. In **AT mode**, we simply communicated with ascii so there was nothing to do here. We went to the second tab, **PORT**. This was were we configured the communication. The Baud was **115200**, there was **no parity bit**, **8 data bits**, **1 stop bit** and **no flow control**. Here, we needed to remember the number after **COM** when we programmed the Meshbee. We had to put this number in the Port field.
 
 ![Port](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/Ports1.png)
 
-We can now send and receive data. Go to the **Send** tab. You have two boxes with *Send Numbers* and *Send Ascii* on the right. This is where you have to type the messages you want to send. When you send an **AT** command, it is important to have to have **CR** (which is \r) at the end of the line. To do so, **check the CR box**. I will not specify anymore this <CR> symbole at the end of each AT command.
+We were then able to send and receive data. We went to the **Send** tab. We saw two boxes with *Send Numbers* and *Send Ascii* on the right. This is where we had to type the messages we wanted to send. When we sent an **AT** command, it was important to have **CR** (which is \r) at the end of the line. To do so, **we checked the CR box**. We will not specify anymore this <CR> symbole at the end of each AT command.
 
 ![send](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/sendchars1.png)
 
-Let's send our first command : **+++**. This allows us to go to AT mode. If you were in MCU mode before and the loop is too long, you might have problems to enter in AT mode. Just spam +++ while reseting the MeshBee (button on the side of the programmer). You will receive a *Enter AT Mode* if you were not in AT mode yet or a *Error, invalid command* if you were in AT mode. At least normally you receive something.
+It was time for our first command : **+++**. This allows us to go to AT mode. If we were in MCU mode before and the loop was too long, we could have problems to enter in AT mode. So, we usually just spamed **+++** while reseting the MeshBee (button on the side of the programmer). We received an *Enter AT Mode* if we were not in AT mode yet or an *Error, invalid command* if we were in AT mode. At least normally we received something.
 
-AT commands are composed as follow : **ATXX[YYYY]**. It always begins by  AT. Then follow two caracters to identify the command, for example IF or AJ. Then follow up to 4 optional numbers which are parameters of the command. For more about it, go to the AT commands section in the  [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). Note that all commands are not avalible for all device type. For instance, an end-node cannot create a network and thus will not have this command.
+We then had to understand AT commands structures. AT commands were composed as follow : **ATXX[YYYY]**. They always began by AT. Then follow two caracters to identify the command, for example IF or AJ. Then follow up to 4 optional numbers which are parameters of the command. For more about it, everything was explained indetails in the AT commands section in the  [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). We noted by looking at the code (that's something we had to often do) that all commands were not avalible for all device type. For instance, an end-node was not able to create a network and thus did not have this command.
 
-Let's try some commands. Begin with **ATIF**. This will print information about the MeshBee. Check that the Device Type is the one you think it is. If you are the coordinator, send **ATPA1**. This command will create a new network. Reset the MeshBee and normally you will see the **ASSOC** led on the programmer light up. Send **ATIF** again and read the **PANID** field, which is the id of your network. You can now go to an other mode, for example data mode with **ATDT**.
+Other commands were tried. We began with **ATIF**. This printed information about the MeshBee. We checked that the Device Type was the one I thought, the coordinator for example. With the coordinator, we sent **ATPA1**. This command created a new network. The MeshBee was then reset and the **ASSOC** led on the programmer light up. We sent **ATIF** again and read the **PANID** field, which was the id of our network. We went to an other mode, for example data mode with **ATDT**.
 
 ![ATIF](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/400px-Configure_coo2.png)
 
-Let's try to connect an other node to the network. Do not forget that you **always** need the coordinator to be on. Unplug it from the programmer and give it power, for example with the raspberry pi (see below). If you want to be sure that it is connected, you can also connect a LED (and a resistor !) to the ASSOC pin (you have the names of the pins below the MeshBee or see the picture above). Plug in the programmer a node that you have flashed with the router or end-node code (or flash it now).
+Next, an other node was connected to the network. We had to remember that we **always** need the coordinator to be on. We unpluged it from the programmer and gave it power with the raspberry pi (see below). We wanted to be sure that it was connected, so a LED was also connected (and a resistor !) to the ASSOC pin (We were able to read the names of the pins below the MeshBee but there is also a picture above to check). A node was pluged in the programmer. It had been flashed with the router or end-node code.
 
-As before, go to AT mode with **+++** and get information with **ATIF**. If the MeshBee was not configured before, the PANID should be 0x0000 or a number different from the one of the router. Let's say to our device to automatically join a network with **ATAJ1**. Then rescan the network with **ATRS** and normally after some seconds, the **ASSOC** led will light up. Check information with **ATIF** and now you should have the same PANID than the coordinator. To know what are the other nodes on the network, send the **ATLA** command. That will send a request to all nodes and you will receive information about all of them. If you go to data mode with **ATDT**, everything you type is broadcast on the network. If the coordinator is also linked to a serial port, for example the raspberry pi one (see below), you will see your message appear in the coordinator console.
+As before, we went to AT mode with **+++** and got information with **ATIF**. If the MeshBee was not configured before, the PANID was 0x0000 or a number different from the one of the coordinator. We had to say to our device to automatically join a network with **ATAJ1**. Then the network was rescaned with **ATRS** and after some seconds, the **ASSOC** led lit up. We checked information with **ATIF** and then we had the same PANID than the coordinator. To know what are the other nodes on the network, we sent the **ATLA** command. That sent a request to all nodes and we received information about all of them. We went to data mode with **ATDT** and everything which was typed in the console was broadcast on the network. As the coordinator was also linked to a serial port, the raspberry pi one (see below), we saw our messages which appeared in the coordinator console.
 
-We now know the basis of AT commands how to simply configure a MeshBee and how to send messages.
+We ended exploring the basis of AT commands, how to simply configure a MeshBee and how to send messages.
 
 ### MCU MODE
 
-The MCU mode is the "arduino like" mode. To go to this mode from the AT mode, just type **ATMC**. Then, the arduino-loop will start.
+The MCU mode is the "arduino like" mode. We went to this mode from the AT mode by just typing **ATMC**. Then, the arduino-loop started.
 
 #### The Arduino-like functions
 
-The source code is located in Mesh_Bee/src. One of the file is called **ups_arduino_sketch.c** . This file contains the two arduino-like functions : **arduino_setup** and **arduino_loop**.
+The source code was located in Mesh_Bee/src. One of the file was called **ups_arduino_sketch.c** . This file contained the two arduino-like functions : **arduino_setup** and **arduino_loop**.
 
-The **arduino_setup** function is called when we enter in MCU mode, through the function **ups_init** you can find in **firmware_aups.c** (AUPS stands for Arduino User Programming Space). This function also calls **suli_init**, so you do no need to initialize suli (see below) if you are in MCU mode. In the **arduino_setup** function, you need to execute everything that needs to be done at the beginning of your program, for example initialization of peripherals.
+The **arduino_setup** function was called when entering in MCU mode, through the function **ups_init** we found in **firmware_aups.c** (AUPS stands for Arduino User Programming Space). This function also called **suli_init**, so there was no need to initialize suli (see below) if the device is in MCU mode. In the **arduino_setup** function, everything that needs to be done at the beginning of our program was written, for example initialization of peripherals.
 
-The **arduino_loop** is a function which is called  periodically. The time between two loops can be defined, in AT mode, by **ATMFXXXX** where XXXX is a number between 0 and 3000 and is the time in milliseconds between two **Arduino_Loop**. This Arduino_Loop function is a task, defined in **firmware_aups.c**,  and either calls **arduino_loop** or exits MCU mode to AT mode if **+++** is read.
+The **arduino_loop** was a function which was called  periodically. WE defined the time between two loops by typing in AT mode, **ATMFXXXX** where XXXX was a number between 0 and 3000 and was the time in milliseconds between two **Arduino_Loop**. This Arduino_Loop function was a task, defined in **firmware_aups.c**,  and either called **arduino_loop** or exit MCU mode to AT mode if **+++** was read.
 
-You can notice that here we use the C preprocessor to know for which device we are compiling the program for.
+We noticed that here we had to use the C preprocessor to know for which device we were compiling the program for.
 
 	#ifdef TARGET_COO
 	// Code for the coordinator
@@ -230,44 +230,44 @@ You can notice that here we use the C preprocessor to know for which device we a
 	// Code for the end node
 	#endif
 
-We know now where to write code. You need to know what code to put in these two functions.
+We then knew where to write code. We needed to know what code to put in these two functions.
 
 #### The SULI Library
 
-SULI is a library written by SeeedStudio to easily use the peripherals. To import it, just add :
+SULI is a library written by SeeedStudio to easily use the peripherals. It is imported it by just adding :
 
 	#include "suli.h"
 
-If you are in MCU mode, you do not need to initialize suli. Otherwise, call :
+When the device is in MCU mode, we did not need to initialize suli. Otherwise :
 
 	suli_init();
 
-To know the pin disposition, see the picture above, in **IMPORTANT DOCUMENTS**.
+To remember the pin disposition, we put the picture above, in **IMPORTANT DOCUMENTS**.
 
 ##### Simple GPIO
 
-Let's begin with simple input/output. First, we need to initialize the pin. We need to use the **void suli_pin_init(IO_T *pio, PIN_T pin)** function. It takes two arguments : an **IO_T** variable that contains the properties of the pin and the pin number.
+Our first experiment was with simple input/output. First, we needed to initialize the pin. We needed to use the **void suli_pin_init(IO_T *pio, PIN_T pin)** function. It took two arguments : an **IO_T** variable that contained the properties of the pin and the pin number.
 
 	IO_T led_io;
 	suli_pin_init(&led_io, D9);
 
-For the pin number, is either an int or you can also use pin names (there are defined in suli/suli.h) : 
+The pin number was either an int or a defined pin name (they were defined in suli/suli.h) :
 
 	D0 = 0, D1=1, D2, D3, D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, D14, D15, D16, D17, D18, D19, D20, DO0=33, DO1=34, A3=0, A4=1, A2=50, A1, TEMP, VOL
 
-Now, we need to set the direction, input or output, of the pin. We use **void suli_pin_dir(IO_T *pio, DIR_T dir)** function, which takes a IO_T argument and a direction, which can be either **HAL_PIN_OUTPUT** or **HAL_PIN_INPUT**.
+Then we had to set the direction, input or output, of the pin. We used the **void suli_pin_dir(IO_T *pio, DIR_T dir)** function, which took a IO_T argument and a direction, which could either be **HAL_PIN_OUTPUT** or **HAL_PIN_INPUT**.
 
 	suli_pin_dir(&led_io, HAL_PIN_OUTPUT);
 
-We can know read the state of a pin with **int16 suli_pin_read(IO_T *pio)** and write the state of a pin with **void suli_pin_write(IO_T *pio, int16 state)**. The state can be either **HAL_PIN_HIGH** or **HAL_PIN_LOW**
+The state of a pin can be read with **int16 suli_pin_read(IO_T *pio)** and be written with **void suli_pin_write(IO_T *pio, int16 state)**. The state can either be **HAL_PIN_HIGH** or **HAL_PIN_LOW**
 
 	suli_pin_write(&led_io, HAL_PIN_HIGH);
 
-Note that we can also read a pulse with uint32 suli_pulse_in(IO_T *pio, uint8 state, uint32 timeout), which return the length of the pulse in microseconds.
+A pulse could be read with uint32 suli_pulse_in(IO_T *pio, uint8 state, uint32 timeout), which returns the length of the pulse in microseconds.
 
 ##### ADC
 
-Like for simple input/output, we need to initialize the pin for analog reading first. We use void **suli_analog_init(ANALOG_T * aio, PIN_T pin)** where ANALOG_T is the equivalent of IO_T. For the pin, choose between **A3=0, A4=1, A2=50, A1, TEMP, VOL**. You can now read with **int16 suli_analog_read(ANALOG_T *aio)**.
+Like for simple input/output, the pin needed to be initialized for analog reading first. We used **void suli_analog_init(ANALOG_T * aio, PIN_T pin)** where ANALOG_T was the equivalent of IO_T. For the pin, there was choice between **A3=0, A4=1, A2=50, A1, TEMP, VOL**. Then, we were able to read with **int16 suli_analog_read(ANALOG_T *aio)**.
 
 	ANALOG_T temp_pin;
 	suli_analog_init(&temp_pin, TEMP);
@@ -275,11 +275,11 @@ Like for simple input/output, we need to initialize the pin for analog reading f
 
 ##### Time functions
 
-You have two fonctions in Suli to wait a certain amount of time : **void suli_delay_us(uint32 us); ** for microseconds waiting and **void suli_delay_ms(uint32 ms);** for milliseconds waiting. You can also know for how long the program have been running with : **uint32 suli_millis(void);** for milliseconds and **uint32 suli_micros(void);** for microseconds. Take care with overflow, after 50 days for suli_millis but after 70 minutes for suli_micros.
+We found two fonctions in Suli to wait a certain amount of time : **void suli_delay_us(uint32 us); ** for microseconds waiting and **void suli_delay_ms(uint32 ms);** for milliseconds waiting. We also found a function to know for how long the program had been running : **uint32 suli_millis(void);** for milliseconds and **uint32 suli_micros(void);** for microseconds. There could be overflow, after 50 days for suli_millis but after 70 minutes for suli_micros.
 
 ##### I2C
 
-I2C works the same way than ADC and input/output. You have an init function **void suli_i2c_init(void * i2c_device);**, a write function **uint8 suli_i2c_write(void * i2c_device, uint8 dev_addr, uint8 *data, uint8 len);** and a read function **uint8 suli_i2c_read(void * i2c_device, uint8 dev_addr, uint8 *buff, uint8 len);**. For I2C, as you have no choice for the pin, specify the i2c_device is useless, just give NULL.
+I2C worked the same way than ADC and input/output. There were an init function **void suli_i2c_init(void * i2c_device);**, a write function **uint8 suli_i2c_write(void * i2c_device, uint8 dev_addr, uint8 *data, uint8 len);** and a read function **uint8 suli_i2c_read(void * i2c_device, uint8 dev_addr, uint8 *buff, uint8 len);**. For I2C, as we had no choice for the pin, specify the i2c_device is useless. We just gave NULL.
 
 	suli_i2c_init(NULL);
 	uint8 data = TRIGGER_HUMD_MEASURE_NOHOLD;
@@ -287,31 +287,31 @@ I2C works the same way than ADC and input/output. You have an init function **vo
 	uint8 msb;
 	suli_i2c_read(NULL, HTDU21D_ADDRESS, &msb, 1);
 
-If you want a use example of I2C, go to **src/humidity.c**. This is a driver to read data from a humidity and temperature sensor.
+We wrote a use example of I2C in **src/humidity.c**. This is a driver to read data from a humidity and temperature sensor (see below).
 
 ##### UART
 
-Like I2C, you have no choice for the UART Port, it has to be UART1. So, in the init function **void suli_uart_init(void * uart_device, int16 uart_num, uint32 baud);**, the is no need to specify uart_device and uart_num. The baud can be : 4800, 9600, 19200, 38400, 57600 or 115200. Note that by default, the baud rate is initialized to 115200, so there is no special need to initialize it.
+Like I2C, we had no choice for the UART Port, it had to be UART1. So, in the init function **void suli_uart_init(void * uart_device, int16 uart_num, uint32 baud);**, there was no need to specify uart_device and uart_num. The baud can be : 4800, 9600, 19200, 38400, 57600 or 115200. We noticed that by default, the baud rate is initialized to 115200, so there was no special need to initialize it.
 
-For the writing part, you have a general function, **void suli_uart_send(void * uart_device, int16 uart_num, uint8 *data, uint16 len);** which just take an array of data and the length of this array. Then, you have more specific functions : void suli_uart_send_byte(void * uart_device, int16 uart_num, uint8 data);, void suli_uart_write_float(void *uart_device, int16 uart_num, float data, uint8 prec);, void suli_uart_write_int(void * uart_device, int16 uart_num, int32 num);. However, you surely want to use printf like function, much easier to use. So, I recommand you use **void suli_uart_printf(void *uart_device, int16 uart_num, const char *fmt, ...); ** (the three dots are a notation of C to say that the number of argument is undetermine, as it is in printf).
+For the writing part, there was a general function, **void suli_uart_send(void * uart_device, int16 uart_num, uint8 *data, uint16 len);** which just took an array of data and the length of this array. Then, there were more specific functions : void suli_uart_send_byte(void * uart_device, int16 uart_num, uint8 data);, void suli_uart_write_float(void *uart_device, int16 uart_num, float data, uint8 prec);, void suli_uart_write_int(void * uart_device, int16 uart_num, int32 num);. However, we wanted to use printf-like function, much easier to use. So, most of the time, we used **void suli_uart_printf(void *uart_device, int16 uart_num, const char *fmt, ...); ** (the three dots are a notation of C to say that the number of argument is undetermine, as it is in printf).
 
 	suli_uart_printf(NULL, NULL, "<HeartBeat%d>\r\n", random());
 
-For the reading part, you have a function to know if you have something to read : **uint16 suli_uart_readable(void *uart_device, int16 uart_num);** which returns one if uart has received readable data. Then you can read a byte with **uint8 suli_uart_read_byte(void *uart_device, int16 uart_num);**
+For the reading part, we had a function to know if there was something to read : **uint16 suli_uart_readable(void *uart_device, int16 uart_num);** which returns one if uart has received readable data, zero otherise. Then I wasable to read a byte with **uint8 suli_uart_read_byte(void *uart_device, int16 uart_num);**
 
-That's it for Suli. There is nothing hard here and if we want more advanced functions, we will have to dig into API provided by NXP. However, **suli/suli.c** can be useful as you can see example of use of the API.
+That's it for Suli. There was nothing hard here and if we wanted more advanced functions, we will have to dig into API provided by NXP. However, **suli/suli.c** can be useful as there are examples of use of the NXP API.
 
 ### API MODE
 
-The API is a simple way to communicate with the MCU from outside. The messages have a particular form, which is explained in details in the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). It is also possible to call API commands from MCU mode.
+The API was a simple way to communicate with the MCU from outside. The messages had a particular form, which was explained in details in the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). It was also possible to call API commands from MCU mode.
 
 #### API Frames
 
-TODO, for now read the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf).
+TODO, for now read the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). It is important to understand it as the Raspberry Pi communicates with the MCU with API frames (see below).
 
 #### Send API Commands from MCU Mode
 
-To send an API Command, we need to build a **tsApiSpec**, which is a representation of an API Frame. Let's see what is inside :
+To send an API Command, we needed to build a **tsApiSpec**, which is a representation of an API Frame. Here is what was inside :
 
 	/* API-specific structure */                                                                             
 	typedef struct                                                                                           
@@ -338,7 +338,7 @@ To send an API Command, we need to build a **tsApiSpec**, which is a representat
 	    uint8 checkSum;                             //verify byte                                            
 	}__attribute__ ((packed)) tsApiSpec;
 
-Let's go through it. We do not care about **startDelimiter**, it is always 0x7e and will be set for us. Then comes the **length** of the payload, which is the useful data in the Frame. The **teApiIdentifier** is the id to identify a packet. I can be one of the following option :
+Let's go through it. We did not care about **startDelimiter**, it was always 0x7e and was set for us by a function. Then came the **length** of the payload, which was the useful data in the Frame. The **teApiIdentifier** was the id to identify a packet. It can be one of the following option :
 
 	typedef enum
 	{
@@ -362,11 +362,11 @@ Let's go through it. We do not care about **startDelimiter**, it is always 0x7e 
 	    API_TOPO_RESP = 0x6b
 	}teApiIdentifier;
 
-Depending of what you are sending, you will have to choose the correct id. They are describe in the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). Now, you have a union, **payload**. In C, it simply means that you have to choose one of the following options. The _ _atttribute_ _ ((packed)) means that the compiler have to be all the fields together, without a hole, in the memory : they are "packed"". Notice that in the payload, you have for example **localAtReq** to do, as the name says, a local At request. If you want the exact definition of a payload, go to **include/firmware_at_api.h** Then, finally, you have a checksum to be a bit more sure that data are transmitted without problems (like a bit switch).
+Depending of what we were sending, we had to choose the correct id. They were described in the [User's Manual](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/MeshBee_User_Manual_v0.3.pdf). Then, there was a union, **payload**. In C, it simply meant that we had to choose one of the following options. The _ _ atttribute _ _ ((packed)) meant that the compiler had to put all the fields together, without a hole, in the memory : they were "packed"". We noticed that in the payload, we had for example **localAtReq** to make, as the name said, a local At request. To find the exact definition of a payload, we went to **include/firmware_at_api.h** Then, finally, we had a checksum to be a bit more sure that data are transmitted without problems (like a bit switch).
 
-Most of the time, you do not have to complete the tsApiSpec yourself. Functions are provided to make it easier. It is also the case for **tsLocalAtResp** and **tsRemoteAtResp**.
+Most of the time, we did not have to complete the tsApiSpec myself. Functions were provided to make it easier. It was also the case for **tsLocalAtResp** and **tsRemoteAtResp**.
 
-For example, if we want to send data to another node in the network we can do it by sending a API command.
+For example, if we wanted to send data to another node in the network. It could be done by sending a API command.
 
 	#include "firmware_at_api.h"
 	#include "firmware_api_pack"
@@ -380,26 +380,26 @@ For example, if we want to send data to another node in the network we can do it
 	uint16 size = i32CopyApiSpec(&apiSpec, tmp); //We actually create the array containing the API Frame in tmp
 	API_bSendToAirPort(UNICAST, 0x0000, tmp, size); // We send the message to 0x0000, the coordinator
 
-To fill tsApiSpec, we used, for data, **void PCK_vApiSpecDataFrame(tsApiSpec *apiSpec, uint8 frameId, uint8 option, void *data, int len);** in **firmware_api_pack.h**. The frameId just identify the frame, put whatever you want. The option 0 for UNICAST, 1 for BROADCAST. It is also important to create the actual frame inside an array with **int i32CopyApiSpec(tsApiSpec *spec, uint8 *dst);** also in **firmware_api_pack.h**. It returns the size of the frame, which is usefull when we we want to send our frame with **bool API_bSendToAirPort(uint16 txMode, uint16 unicastDest, uint8 *buf, int len);** in **firmware_at_api.h**. The txMode can be either UNICAST (to only one node) or BROADCAST (to all nodes). Then you have to specify an address which will be used if you are in UNICAST mode (otherwise it does not matter), the frame array you have just created and its length.
+To fill tsApiSpec, we used, for data, **void PCK_vApiSpecDataFrame(tsApiSpec *apiSpec, uint8 frameId, uint8 option, void *data, int len);** in **firmware_api_pack.h**. The frameId just identified the frame, we put whatever we wanted, it was not that important. The option was 0 for UNICAST, 1 for BROADCAST. It was also important to create the actual frame inside an array with **int i32CopyApiSpec(tsApiSpec *spec, uint8 *dst);** also in **firmware_api_pack.h**. It returned the size of the frame, which was useful when we wanted to send my frame with **bool API_bSendToAirPort(uint16 txMode, uint16 unicastDest, uint8 *buf, int len);** in **firmware_at_api.h**. The txMode can be either UNICAST (to only one node) or BROADCAST (to all nodes). Then we had to specify an address which was only used if we were in UNICAST mode (otherwise it did not matter), the frame array we had just created and its length.
 
-You can also call AT commands thanks to **int API_i32AtCmdProc(uint8 *buf, int len);** in **firmware_at_api.h**. Just give it your command and its length and it returns you if the function succeeded or not.
+We were also able to call AT commands thanks to **int API_i32AtCmdProc(uint8 *buf, int len);** in **firmware_at_api.h**. We just gave it a command and its length and it returned if the function had succeeded or not.
 
 	char * aj = "ATAJ1";
 	API_i32AtCmdProc(aj, 5);
 
-You have other functions in firmware_at_api.h and firmware_api_pack.h but for now I do not find them useful. Explore the code if you have to go in more details.
+We found other functions in firmware_at_api.h and firmware_api_pack.h but for now we did not find them useful. It was for example possible to send a message to a given Mac address. We explored the code if we wanted to go in more details.
 
 ### First Experiments
 
-Here I will try to explain the first experiments I did when I received the MeshBees. I began with an simple hello word, with a LED.
+The first experiments we carried out when we received the MeshBees allowed us to better understand how it worked. We began with a simple hello word, with a LED.
 
 #### Hello World !
 
-The circuit is really simple : a Led and a resistor connected to D9.
+The circuit was really simple : a Led and a resistor connected to D9.
 
 ![led](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/led_scheme.png)
 
-The code we use is simple.
+The code I used was also simple.
 
 	#include "suli.h"
 
@@ -415,7 +415,7 @@ The code we use is simple.
 
 	void arduino_loop(void){
 		state = ~state; // We just exchange the state of the pin
-		
+
 		suli_pin_write(&led_io, state); //Blink
 
 		suli_delay_ms(1000); // wait one second
@@ -425,11 +425,11 @@ Note that instead of waiting actively with suli_delay_ms, we could also change t
 
 #### Read a Brightness
 
-The measure the brightness, with use a photoresistor : the higher the brightness the lower the resitance. So, to measure it, with do a voltage divider with a resitor of 5k ohms.
+To measure the brightness, we used a photoresistor : the higher the brightness the lower the resitance. So, to measure it, we did a voltage divider with a resitor of 5k ohms.
 
 ![photoresistor](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/photores.png)
 
-We connect the middle point with ADC3, i.e. D0. Here is the code, we read the brightness and send it to the coordinator :
+We connected the middle point with ADC3, i.e. D0. Here was the code, we read the brightness and sent it to the coordinator :
 
 	#include "suli.h"
 	#include "firmware_api_pack.h"
@@ -458,75 +458,75 @@ We connect the middle point with ADC3, i.e. D0. Here is the code, we read the br
 		suli_delay_ms(1000); // wait one second
 	}
 
-Note that you could also read the internal temperature the same way : just replace the initialization of the pin by **suli_analog_init(&temp_pin, TEMP);**.
+Note that we could also read the internal temperature the same way : the initialization of the pin was replaced by **suli_analog_init(&temp_pin, TEMP);**.
 
 #### A driver for HTU21D
 
-HTU21D is a humidity sensor which can also output a temperature. It is communicating by I2C with the MCU. You can find the code for it in **src/humidity.c**. You have three functions. The first one is **void init_humidity(void)**. It simply initialize everything to read the sensor, here it is only initializing I2C.
+HTU21D was a humidity sensor which can also output a temperature. It was communicating by I2C with the MCU. The code for it is in **src/humidity.c**. There are three functions. The first one was **void init_humidity(void)**. It simply initialized everything to read the sensor, here it was only initializing I2C.
 
-Then you have two functions. One to read humidity : **unsigned int read_humidity(void)**. It returns you a raw_humidity. To get the real one, just compute : 
+Then we wrote two functions. One to read humidity : **unsigned int read_humidity(void)**. It returned a raw_humidity. To get the real one, we just computed :
 
 	-6 + (125 * rawHumidity / (float)65536);
 
-The function asks to read humidity. Then, it waits for the result to be avalible and read it. The message read is composed of three parts : the most and least significative bytes of the humidity and a checksum to be sure of what we read. Note that inside the humidity value, there are two status bits we need to erase.
+The function request to read humidity to HTU21D. Then, it waited for the result to be avalible and read it. The message read was composed of three parts : the most and least significative bytes of the humidity and a checksum to be sure of what we read. We noted that inside the humidity value, there were two status bits we needed to erase.
 
-The temperature reading works the same way, with **unsigned int read_temperature(void)**. It returns the raw temperature value, so to get the real one, you need to compute : 
+The temperature reading worked the same way, with **unsigned int read_temperature(void)**. It returned the raw temperature value, so to get the real one, we needed to compute :
 
 	(float)(-46.85 + (175.72 * rawTemperature / (float)65536))
 
 ## The Interface
 
-To do the interface between the MeshBee network and the server side, we are going to use a raspberry pi which will be connected directly to the coordinator by UART.
+To do the interface between the MeshBee network and the server side, we used a raspberry pi which was connected directly to the coordinator by UART.
 
 ### Configuring the Raspberry Pi
 
-For now, I am using a Raspberry Pi 3. It is pretty cool because it is powerful enough to also run a server (see later) and has a Wifi chip integrated. For the OS, we are going to use Raspbian. The first thing you have to do if you have a new Raspberry Pi is to install the OS. I recommand you to do it on a at least 8Go SD card. I will not explain here all the steps to install. Go to [adafruit raspberry pi tutorial](https://learn.adafruit.com/category/learn-raspberry-pi) for example to know how or search on google. During the configuration, when you are in raspi-config, do not forget to activate the serial communication in the advanced parameters.
+We used a Raspberry Pi 3. It was pretty cool because it was powerful enough to also run a server (see later) and had a Wifi chip integrated. For the OS, we used Raspbian. The first thing we had to do when we received a new Raspberry Pi was to install the OS. We used a 8Go SD card (less is not enough for the full version of Raspbian). We followed [adafruit raspberry pi tutorial](https://learn.adafruit.com/category/learn-raspberry-pi) for example to know how or we searched on google. During the configuration, when we were in raspi-config, we did not forget to activate the serial communication in the advanced parameters.
 
-I now suppose you have Raspbian install and you are ready to use it. We need to configure the Serial port to communicate with the MeshBee. You can find the serial port in **/dev/ttyS0** on RP3 or **/dev/ttyAMA0**. The problem is that by default, the raspberry is configured to have a terminal on this port. So we need to remove it. To do so, open the file **/boot/cmdline.txt** :
+We needed to configure the Serial port to communicate with the MeshBee. We found the serial port in **/dev/ttyS0** on RP3 or **/dev/ttyAMA0** for older versions. The problem was that by default, the raspberry is configured to have a terminal on this port. So we needed to remove it. To do so, we opened the file **/boot/cmdline.txt** :
 
 	sudo nano /boot/cmdline.txt
 
-and remove the part with ttyAMA0 or serial0 (console=serial0, 115200). You should have something like :
+and we removed the part with ttyAMA0 or serial0 (console=serial0, 115200). We had something like :
 
 	dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait
 
-(no serial0). What follows is for the Raspberry Pi 3. We need to say that we activate uart. For that, we have to open the file **/boot/config.txt**
+(no serial0). What followed is for the Raspberry Pi 3. We needed to say that we activated uart. For that, we had to open the file **/boot/config.txt**
 
 	sudo nano /boot/config.txt
 
-and add the lines
+and to add the lines
 
 	enable_uart=1
 	core_freq=250
 
-For the version of Raspbian I use, we need to change the core frequency. It may be corrected in future version. I had problems with the communication with the MeshBee. So, I took my oscilloscope and measured the baudrate and instead of being 115200, it was aroud 72000. Try this if your are not sure.
+For the version of Raspbian we used, we needed to change the core frequency. It may be corrected in future version. We had problems with the communication with the MeshBee. So, we took an oscilloscope and measured the baudrate and instead of being 115200, it was aroud 72000.
 
-We are now ready to run our program. With the complete version of Raspbian, you should not have to install git and python librairies to manipulate the GPIOs. Clone my Mesh_Bee repository where you want :
+We were then ready to run our program. With the complete version of Raspbian, we did not have to install git and python librairies to manipulate the GPIOs. We cloned our Mesh_Bee repository :
 
 	git clone https://github.com/Aunsiels/Mesh_Bee.git
 
-Also, if you do not like nano, you could install another editor, like vim. Rasbian comes from Debian, so you also find apt-get
+Also, as we do not like that much nano, we installed another editor, like vim. Rasbian came from Debian, so we also found apt-get
 
 	sudo apt-get install vim
 
 ### Connections
 
-Obviously, to comminicate with the MeshBee via the serial port, you need to link it to the Raspberry Pi. Here is how the pins are organized on the Raspberry Pi 3.
+Obviously, to communicate with the MeshBee via the serial port, we needed to link it to the Raspberry Pi. Here is how the pins are organized on the Raspberry Pi 3.
 
 ![RP3 pin layout](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/pi3_gpio.png)
 
-To give power to the MeshBee, connect the 3.3V pin of the MeshBee to the 3.3V pin of the Raspberry Pi (pin 01). Do the same for Ground (GND) which is on ports 06 or 09 for example. Then, and it is **important** to do it correctly, connect the TX1 pin of the MeshBee to the RXD0 pin of the Raspberry Pi (pin 10) and the RX1 pin of the MeshBee to the TXD0 pin of the Raspberry Pi (pin 08). You should have something like that :
+To give power to the MeshBee, we connected the 3.3V pin of the MeshBee to the 3.3V pin of the Raspberry Pi (pin 01). We did the same for Ground (GND) which was on ports 06 or 09 for example. Then, and it was **important** to do it correctly, to connect the TX1 pin of the MeshBee to the RXD0 pin of the Raspberry Pi (pin 10) and the RX1 pin of the MeshBee to the TXD0 pin of the Raspberry Pi (pin 08). We had something like that :
 
 ![connect mb rp](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/connect_meshbee_rp.jpg)
 
-Note that I added a LED (and a resistor !) connected to the ASSOC pin of the MeshBee to be sure that the MeshBee is connected and working.
+Note that we added a LED (and a resistor !) connected to the ASSOC pin of the MeshBee to be sure that the MeshBee was connected and working.
 
-Now that we have the MeshBee connected, we can try to communicate with it. For that, you could use software like minicom or cutecom. I personnaly recommand **cutecom** as it is easy to use. Install it :
+Now that we had the MeshBee connected, we tried to communicate with it. For that, we used software cutecom. It was easy to use. We installed it :
 
 	sudo apt-get install cutecum
 
-Then open it by typing **cutecom** in the terminal. A window opens.
+Then we opened it by typing **cutecom** in the terminal.
 
 ![cutecom](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/cutecom-0.14.0.png)
 
-Normally, parameters are good when you open it. Just check that the device is **/dev/ttyS0** and at the bottom that you have **CR line end**. You can know try to send **AT** commands for example like we saw above.
+Parameters were good when you open it. We just checked that the device was **/dev/ttyS0** and at the bottom that we had **CR line end**. We then tried to send **AT** commands for example like we saw above.
