@@ -93,7 +93,6 @@ PRIVATE const tsReg128 g_sKey = { 0x45FDF4C9, 0xAE9A6214, 0x7B27285B, 0xDB7E4557
 
 /* On/Sleep Led */
 extern IO_T SleepLed;
-
 /****************************************************************************/
 /***        External Variables                                            ***/
 /****************************************************************************/
@@ -414,11 +413,8 @@ PRIVATE void vInitialiseApp(void)
     role = "END";
 #endif
 
-    
     DBG_vPrintf(TRACE_START, "Initialising %s node... \r\n", role);
     node_vInitialise();
-
-
 }
 
 

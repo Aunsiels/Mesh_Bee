@@ -29,6 +29,7 @@
 #include "firmware_sleep.h"
 #include "suli.h"
 #include "humidity.h"
+#include "zcl.h"
 
 void DO12_callback(uint32 u32Device, uint32 u32ItemBitmap){
 	//We check if the callback was called by D12
@@ -105,19 +106,33 @@ void arduino_loop(void)
                 low,
                 hum);*/			
     
-	sprintf(tmp, "TMPI%08x%08x%d\r\n",
-                high,
-                low,
-                hum);		
+	sprintf(tmp, "TMPIXXXX%d",
+                hum);	
 
-    PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp));
 
-    /* Air to Coordinator */
-    uint16 size = i32CopyApiSpec(&apiSpec, tmp);
-    if(API_bSendToAirPort(UNICAST, 0x0000, tmp, size))
-    {
-        suli_uart_printf(NULL, NULL, "<HeartBeat%d>\r\n", random());
-    }
+	if (bZCL_GetTimeHasBeenSynchronised()){
+        uint32 time = u32ZCL_GetUTCTime();
+		char * time_ptr = (char *) &time;
+		
+		uart_printf("Time : %d s\r\n", time);
+		
+		tmp[4] = time_ptr[0];
+		tmp[5] = time_ptr[1];
+		tmp[6] = time_ptr[2];
+		tmp[7] = time_ptr[3];
+		
+		PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp+8) + 8);
+
+        /* Air to Coordinator */
+        uint16 size = i32CopyApiSpec(&apiSpec, tmp);
+	
+        if(API_bSendToAirPort(UNICAST, 0x0000, tmp, size))
+        {
+            suli_uart_printf(NULL, NULL, "<HeartBeat%d>\r\n", random());
+        }
+	} else {
+		uart_printf("Nothing to read\r\n");
+	}
 	
     /*hum = read_humidity();
     sprintf(tmp, "HUMI%08x%08x%d\r\n",

@@ -184,18 +184,13 @@ APPSRC += os_irq_unimplementedmodule.S
 APPSRC += pdum_gen.c
 APPSRC += zps_gen.c
 
-APPSRC += $(notdir $(wildcard $(ZCL_BASE)/Source/*.c))
-APPSRC += $(notdir $(wildcard $(ZCL_BASE)/Clusters/General/Source/*.c))
-APPSRC += $(notdir $(wildcard $(ZCL_BASE)/Profiles/SE/Source/*.c))
-APPSRC += $(notdir $(wildcard $(ZCL_BASE)/Clusters/SmartEnergy/Source/*.c))
-APPSRC += $(notdir $(wildcard $(ZCL_BASE)/Clusters/OTA/Source/*.c))
-
 APPSRC += app_timer_driver.c
 
 ##########
 #auto scan all c files under folder: src & suli
 APPSRC += $(notdir $(wildcard $(APP_SRC_DIR)/*.c))
 APPSRC += $(notdir $(wildcard $(SULI_DIR)/*.c))
+APPSRC += $(notdir $(wildcard $(ZCL_BASE)/Source/*.c))
 
 ##########
 APP_ZPSCFG = MeshBee.zpscfg
@@ -210,21 +205,13 @@ INCFLAGS += -I$(SULI_DIR)
 INCFLAGS += -I$(COMPONENTS_BASE_DIR)/Utilities/Include
 INCFLAGS += -I$(COMPONENTS_BASE_DIR)/Recal/Include
 INCFLAGS += -I$(COMPONENTS_BASE_DIR)/OVLY/Include
-## ADDED
 INCFLAGS += -I$(ZCL_BASE)/Include
-INCFLAGS += -I$(COMPONENTS_BASE_DIR)/CerticomSBMCE/Include
-INCFLAGS += -I$(ZCL_BASE)/Clusters/OTA/Include
-INCFLAGS += -I$(ZCL_BASE)/Clusters/General/Include
-INCFLAGS += -I$(ZCL_BASE)/Clusters/SmartEnergy/Include
-INCFLAGS += -I$(ZCL_BASE)/Profiles/SE/Include
 
 ###############################################################################
 # Application libraries
 # Specify additional Component libraries
 
 APPLIBS += Recal
-
-
 
 
 
@@ -271,7 +258,7 @@ LDFLAGS += -L$(STACK_BASE_DIR)/ZBPro/Build
 
 .PHONY: all clean
 # Path to directories containing application source 
-vpath % $(APP_SRC_DIR):$(APP_BLD_DIR)/gen:$(SULI_DIR):$(SE_SRC_DIRS):$(UTIL_SRC_DIR):$(ZCL_BASE)/Source:$(ZCL_BASE)/Clusters/General/Source/:$(ZCL_BASE)/Profiles/SE/Source:$(ZCL_BASE)/Clusters/SmartEnergy/Source/:$(ZCL_BASE)/Clusters/OTA/Source
+vpath % $(APP_SRC_DIR):$(APP_BLD_DIR)/gen:$(SULI_DIR):$(SE_SRC_DIRS):$(UTIL_SRC_DIR):$(ZCL_BASE)/Source
 
 
 all: $(APP_BLD_DIR)/output/$(TARGET)_$(JENNIC_CHIP)$(BIN_SUFFIX).bin

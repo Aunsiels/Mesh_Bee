@@ -86,8 +86,8 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
   }
 
   /* Receives a measure from a sensor */
-  def measureData(id : String, dataType : String, data : Float) = Action {
-    val currentTime = java.util.Calendar.getInstance.getTime
+  def measureData(id : String, dataType : String, data : Float, time : Long) = Action {
+    val currentTime = new java.util.Date(time)
     var temp = 0.0
 
     if (dataType contains "TEMP"){
