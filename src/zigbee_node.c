@@ -45,7 +45,7 @@
 #include "suli.h"
 #include "firmware_rpc.h"
 #include "zcl.h"
-#include "zcl_option.h"
+#include "zcl_options.h"
 #include "Time.h"
 #include "ovly.h"
 #include "se.h"

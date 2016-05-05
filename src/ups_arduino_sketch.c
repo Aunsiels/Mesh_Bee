@@ -30,9 +30,26 @@
 #include "suli.h"
 #include "humidity.h"
 
+void DO12_callback(uint32 u32Device, uint32 u32ItemBitmap){
+	//We check if the callback was called by D12
+	suli_uart_printf(NULL, NULL, "In callback\r\n");
+	
+	static last_D12 = 0;
+	
+	uint32 status = u32AHI_DioInterruptStatus();
+	if (status & (1 << D12)){
+		//To avoid too many interrupts
+		if (suli_millis() - last_D12 > 100) {
+			last_D12 = suli_millis();
+			suli_uart_printf(NULL, NULL, "Interrupt !\r\n");
+		}
+	}
+}
+
 ANALOG_T temp_pin;
 ANALOG_T lumi_pin;
 const int LUMI = 0;
+IO_T button_pin;
 
 void arduino_setup(void)
 {
@@ -40,6 +57,16 @@ void arduino_setup(void)
     setNodeState(E_MODE_MCU);
 	//init_humidity();
 	//suli_analog_init(&lumi_pin, LUMI);
+	suli_pin_init(&button_pin, D12);
+	suli_pin_dir(&button_pin, HAL_PIN_INPUT);
+	//Pull up by default
+	vAHI_SysCtrlRegisterCallback(DO12_callback);
+	//Enable interrupt
+	uint32 isr_mask = (1 << D12);
+	//The Second argument is to disable
+	vAHI_DioInterruptEnable(isr_mask, 0);
+	uint32 falling = (1 << D12);
+	vAHI_DioInterruptEnable(0, falling); // First argument for rising edge
 #endif
 
     suli_analog_init(&temp_pin, TEMP);

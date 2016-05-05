@@ -38,7 +38,7 @@
 #include "firmware_sleep.h"
 #include "suli.h"
 #include "zcl.h"
-#include "zcl_option.h"
+#include "zcl_options.h"
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
 /****************************************************************************/
