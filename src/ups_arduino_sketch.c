@@ -30,44 +30,34 @@
 #include "suli.h"
 #include "humidity.h"
 #include "zcl.h"
+#include "utils_meshbee.h"
 
-void DO12_callback(uint32 u32Device, uint32 u32ItemBitmap){
-	//We check if the callback was called by D12
-	suli_uart_printf(NULL, NULL, "In callback\r\n");
-	
-	static last_D12 = 0;
-	
-	uint32 status = u32AHI_DioInterruptStatus();
-	if (status & (1 << D12)){
-		//To avoid too many interrupts
-		if (suli_millis() - last_D12 > 100) {
-			last_D12 = suli_millis();
-			suli_uart_printf(NULL, NULL, "Interrupt !\r\n");
-		}
-	}
-}
+IO_T led_pin;
 
 ANALOG_T temp_pin;
 ANALOG_T lumi_pin;
 const int LUMI = 0;
-IO_T button_pin;
+
+IO_T button_pin = D0;
 
 void arduino_setup(void)
 {
 #ifdef TARGET_ROU
     setNodeState(E_MODE_MCU);
+	
+	suli_pin_init(&led_pin, D18);
+	suli_pin_dir(&led_pin, HAL_PIN_OUTPUT);
+	
 	//init_humidity();
 	//suli_analog_init(&lumi_pin, LUMI);
-	suli_pin_init(&button_pin, D12);
-	suli_pin_dir(&button_pin, HAL_PIN_INPUT);
 	//Pull up by default
-	vAHI_SysCtrlRegisterCallback(DO12_callback);
 	//Enable interrupt
-	uint32 isr_mask = (1 << D12);
+	uint32 mask = (1 << D0);
 	//The Second argument is to disable
-	vAHI_DioInterruptEnable(isr_mask, 0);
-	uint32 falling = (1 << D12);
-	vAHI_DioInterruptEnable(0, falling); // First argument for rising edge
+	vAHI_DioSetDirection(mask, 0);
+	vAHI_DioInterruptEdge(0, mask); // First argument for rising edge
+	vAHI_DioInterruptEnable(mask, 0);
+	
 #endif
 
     suli_analog_init(&temp_pin, TEMP);
@@ -80,73 +70,20 @@ void arduino_loop(void)
     suli_uart_printf(NULL, NULL, "random:%d\r\n", random());
 #elif TARGET_ROU
     unsigned int hum = 0;
-    uint8 tmp[sizeof(tsApiSpec)]={0};
-    tsApiSpec apiSpec;
 
 	//hum = read_temperature();
     //hum = random();
     //hum = suli_analog_read(&lumi_pin);
-	hum = suli_analog_read(&temp_pin);
-	
-    uint32 high = (uint32)(ZPS_u64AplZdoGetIeeeAddr() >> 32);
-	uint32 low  = (uint32)(ZPS_u64AplZdoGetIeeeAddr());
-	
-    /*sprintf(tmp, "TEMP%08x%08x%d\r\n",
-                high,
-                low,
-                hum);*/
-	
-    /*sprintf(tmp, "RAND%08x%08x%d\r\n",
-                high,
-                low,
-                hum);*/
-				
-    /*sprintf(tmp, "LUMI%08x%08x%d\r\n",
-                high,
-                low,
-                hum);*/			
+	hum = suli_analog_read(&temp_pin);	
     
-	sprintf(tmp, "TMPIXXXX%d",
-                hum);	
-
-
-	if (bZCL_GetTimeHasBeenSynchronised()){
-        uint32 time = u32ZCL_GetUTCTime();
-		char * time_ptr = (char *) &time;
-		
-		uart_printf("Time : %d s\r\n", time);
-		
-		tmp[4] = time_ptr[0];
-		tmp[5] = time_ptr[1];
-		tmp[6] = time_ptr[2];
-		tmp[7] = time_ptr[3];
-		
-		PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp+8) + 8);
-
-        /* Air to Coordinator */
-        uint16 size = i32CopyApiSpec(&apiSpec, tmp);
-	
-        if(API_bSendToAirPort(UNICAST, 0x0000, tmp, size))
-        {
-            suli_uart_printf(NULL, NULL, "<HeartBeat%d>\r\n", random());
-        }
-	} else {
-		uart_printf("Nothing to read\r\n");
-	}
+    send_frame("TMPI", hum);
+    //send_frame("RAND", hum);
+	//send_frame("LUMI", hum);
+    //send_frame("TEMP", hum);
 	
     /*hum = read_humidity();
-    sprintf(tmp, "HUMI%08x%08x%d\r\n",
-                high,
-                low,
-                hum);
-				
-	PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp));
-
-    size = i32CopyApiSpec(&apiSpec, tmp);
-    if(API_bSendToAirPort(UNICAST, 0x0000, tmp, size))
-    {
-        suli_uart_printf(NULL, NULL, "<HeartBeat%d>\r\n", random());
-    }*/
+	send_frame("HUMI", hum);
+	*/
 	
 	vDelayMsec(3000);
 #else

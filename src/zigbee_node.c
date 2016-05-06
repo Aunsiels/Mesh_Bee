@@ -45,10 +45,6 @@
 #include "zcl.h"
 #include "zcl_options.h"
 
-#include "Time.h"
-#include "ovly.h"
-#include "se.h"
-
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
 /****************************************************************************/
@@ -994,6 +990,7 @@ PUBLIC void node_vInitialise(void)
 	/* Start the tick timer */
 	OS_eStartSWTimer(APP_ZclTimer, APP_TIME_MS(1000), NULL);
 	
+	/* Added by me */
 	teZCL_Status eStatus;
     tsZCL_Config sConfig;
 
