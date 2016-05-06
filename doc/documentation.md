@@ -474,6 +474,25 @@ The temperature reading worked the same way, with **unsigned int read_temperatur
 
 	(float)(-46.85 + (175.72 * rawTemperature / (float)65536))
 
+### More in Depth
+
+#### Create new Tasks
+
+    While trying to do time synchronization, we needed to call a given function every one second. In JenOs, we needed to create a new **Task**. Tasks are special functions which can only be called by the OS. They are run in parrallel of the main function (so we needed to be careful with shared ressources). The first thing we had to do was to say to the OS to add a new task. This is done in the file **src/MeshBee.oscfgdiag**. When we opened the raw files, there were a lot of text and it was hard to understand everything. NXP provides a graphical interface to edit this file. We used it.
+
+TODO Explain the create part
+
+The task was declared to the OS. A file will be generated at compile time to transform those information into code. TODO name of the file.
+
+We then had to add code to explain to the OS what to do with the task. Do declare the task, we used the macro : **OS_TASK(task_name)**. For example, if the task's name was App_Task, it looked like :
+
+    OS(APP_Task) {
+        // Code
+    }
+
+The task was created. We needed to say when to execute our task. The easiest way to it was to use the function **OS_teStatus OS_eActivateTask(OS_thTask hTask);**. It took the task name as an agument and returned if it succeded or not : OS_E_OK (successful), OS_E_BADTASK (invalid task handle used) or OS_E_OVERACTIVATION (maximum number of activations exceeded: 65535). It asked the OS to schedule the given task. However, it was quite limited because we needed to know exactly when to call the task. However, we needed to call the task every second. So, we needed to use a timer, the one we declared in our configuration file. We had a function to say to start the timer : **OS_teStatus OS_eStartSWTimer(OS_thSWTimer hSWTimer, uint32 u32Ticks, void *pvData);**. It took the timer's name, the number of ticks before the timer ends (we used the macro **APP_TIME_MS(n_millisecon)**), and data which are only useful for callback functions (here we provided NULL for our task). It returned a status which could be OS_E_OK (successful), OS_E_BADSWTIMER (invalid software timer handle) or OS_E_SWTIMER_RUNNING (software timer already running). Once our task was called, it was either possible to restart the timer with the same function or to continue to use the same timer (which continued to count while we did some computation) with **OS_teStatus OS_eContinueSWTimer(OS_thSWTimer hSWTimer, uint32 u32Ticks, void *pvData);** (returned the same status than OS_eStartSWTimer). Finally, we needed check the status of the timer with **OS_teStatus OS_eGetSWTimerStatus(OS_thSWTimer hSWTimer);** to know whether it had just expired or not. It returned either OS_E_BADSWTIMER (invalid software timer handle), OS_E_SWTIMER_RUNNING (software timer is running), OS_E_SWTIMER_STOPPED (software timer has been stopped) or OS_E_SWTIMER_EXPIRED (software timer has expired).
+
+
 ## The Interface
 
 To do the interface between the MeshBee network and the server side, we used a raspberry pi which was connected directly to the coordinator by UART.
