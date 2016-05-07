@@ -6,6 +6,27 @@
 #include "firmware_aups.h"
 #include "zcl.h"
 
+
+/* Interrupt handler to catch interrupts from the System Controller */
+OS_ISR(sysctrl_callback){
+	// To remember the last time it was call and avoid to many calls
+	// TODO This can overflow, as suli_millis overflow after around 50 days
+	static unsigned int last_D0 = 0;
+	
+	uint32 status = u32AHI_DioInterruptStatus();
+	//We check if the callback was called by D0
+    if (status & (1 << D0)){
+		//To avoid too many interrupts
+		if (suli_millis() - last_D0 > 100) {
+			last_D0 = suli_millis();
+			suli_uart_printf(NULL, NULL, "Interrupt !\r\n");
+			//Send a message to signal the event
+			send_frame("BTN0", 1);	
+		}
+	}
+}
+
+/* Function to send a data frame according to our protocol */
 void send_frame(char* name, int data){
 	uint8 tmp[sizeof(tsApiSpec)]={0};
     tsApiSpec apiSpec;

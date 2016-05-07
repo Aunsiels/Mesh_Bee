@@ -118,34 +118,6 @@ extern void *free_ram_len;
 /***        Exported Functions                                            ***/
 /****************************************************************************/
 
-
-IO_T led_pin = D18;
-
-OS_ISR(sysctrl_callback){
-	//We check if the callback was called by D0
-	
-	static int last_D0 = 0;
-	static int state = 0;
-	
-	if (state){
-		suli_pin_write(&led_pin, HAL_PIN_LOW);
-	} else {
-		suli_pin_write(&led_pin, HAL_PIN_HIGH);
-	}
-	state = !state;
-	
-	uint32 status = u32AHI_DioInterruptStatus();
-	if (status & (1 << 0)){
-		//To avoid too many interrupts
-		if (suli_millis() - last_D0 > 100) {
-			last_D0 = suli_millis();
-			suli_uart_printf(NULL, NULL, "Interrupt !\r\n");
-			//Send a message to signal the event
-			send_frame("BTN0", 1);	
-		}
-	}
-}
-
   /*
    * The Power Manager is initialized and started using the function PWRM_vInit()
    * here, the 32-kHz oscillator and memory are left running during sleep,
@@ -348,7 +320,6 @@ PUBLIC void vAppMain(void)
 
 	u32AHI_Init();
     u32AppApiInit(NULL, NULL, NULL, NULL, NULL, NULL);
-	//vAHI_SysCtrlRegisterCallback(sysctrl_callback);
 
     vAHI_HighPowerModuleEnable(TRUE, TRUE);
 
