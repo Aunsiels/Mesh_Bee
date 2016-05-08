@@ -117,9 +117,6 @@ OS_TASK(APP_ZCLTask)
 {
 	tsZCL_CallBackEvent sCallBackEvent;
 	ZPS_tsAfEvent sStackEvent;
-	static uint8 u8Seconds = 0;
-
-	u8Seconds++;
 
 	/* Clear the ZigBee stack event */
 	sStackEvent.eType = ZPS_EVENT_NONE;

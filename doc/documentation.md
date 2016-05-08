@@ -403,7 +403,7 @@ The circuit was really simple : a Led and a resistor connected to D9.
 
 ![led](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/led_scheme.png)
 
-The code I used was also simple.
+The code we used was also simple.
 
 	#include "suli.h"
 
@@ -482,20 +482,88 @@ The temperature reading worked the same way, with **unsigned int read_temperatur
 
 #### Create new Tasks
 
-    While trying to do time synchronization, we needed to call a given function every one second. In JenOs, we needed to create a new **Task**. Tasks are special functions which can only be called by the OS. They are run in parrallel of the main function (so we needed to be careful with shared ressources). The first thing we had to do was to say to the OS to add a new task. This is done in the file **src/MeshBee.oscfgdiag**. When we opened the raw files, there were a lot of text and it was hard to understand everything. NXP provides a graphical interface to edit this file. We used it.
+While trying to do time synchronization, we needed to call a given function every one second. In JenOs, we needed to create a new **Task**. Tasks are special functions which can only be called by the OS. They are run in parallel of the main function (so we needed to be careful with shared ressources). The first thing we had to do was to say to the OS to add a new task. This is done in the file **src/MeshBee.oscfgdiag**. When we opened the raw files, there were a lot of text and it was hard to understand everything. NXP provides a graphical interface to edit this file. We used it.
 
-TODO Explain the create part
+In the **C:/Jennic/Tools**, we found eclipse, a well-known code editor. We opened it and chose **C:/Jennic/Application** as the Workspace. The file is still a raw text when we opened it. We had to choose plugins in **C:\Jennic\Tools\Eclipse_plugins**. Once the plugins installed, the raw text became a diagram.
 
-The task was declared to the OS. A file will be generated at compile time to transform those information into code. TODO name of the file.
+![Eclipse config file](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/eclipse.png)
 
-We then had to add code to explain to the OS what to do with the task. Do declare the task, we used the macro : **OS_TASK(task_name)**. For example, if the task's name was App_Task, it looked like :
+We saw, on the left, the project explorer where are our files. On the right, there are the components that can be added in the diagram, which is in the middle if it was opened. At the bottom, there are the properties of the selected component. If it is not there, it can be added by clicking on the bottom left hand corner icon and by selecting "Properties".
+
+We looked at diagram in more details.
+
+![Diagram](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/global_config.jpg)
+
+We saw that there are different kinds of blocks : Tasks, Software Timer, mutexes... These blocks were linked to each other in a meaningful way. For instance, a task was able to use a mutex to enter in a critical section. We noticed that sometimes the documentation of JenOs assumed that some blocks are declared. For example, it was assumed that there was a task declared for time synchronisation or that there was a interrupt handler for System Controller's interrupts. So, the first time we discovered it, it was a bit suprising that given function did not work. If it was written to give a callback function for an interrupt, even if the function existed, if there was nothing in the config file to declare the interrupt and link it to an ISR (see later to know what it is), the function was useless and did not work at all.
+
+We created a task to synchronize time. The task name was **APP_ZCLTask**. The goal of the task was to keep the count of the time (see later). We just selected **Task** in the Palette. Then, we clicked in a free space in the diagram. The Task box appeared. We gave it a name and a priority (for the scheduler). Then was created links with other components. Some links can be created directly by using the input and output arrows at the border of the box (they appeared when passing the mouse above the box). Some links need to be selected in the Palette. It was the case for **Critical Section**
+
+![Task](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/zoom_softtimer.jpg)
+
+The task was declared to the OS. A file will be generated at compile time to transform those information into code. The files generated were called **build/gen/os\***.
+
+We then had to add code to explain to the OS what to do with the task. To declare the task, we used the macro : **OS_TASK(task_name)**. For example, if the task's name was App_Task, it looked like :
 
     OS(APP_Task) {
         // Code
     }
 
-The task was created. We needed to say when to execute our task. The easiest way to it was to use the function **OS_teStatus OS_eActivateTask(OS_thTask hTask);**. It took the task name as an agument and returned if it succeded or not : OS_E_OK (successful), OS_E_BADTASK (invalid task handle used) or OS_E_OVERACTIVATION (maximum number of activations exceeded: 65535). It asked the OS to schedule the given task. However, it was quite limited because we needed to know exactly when to call the task. However, we needed to call the task every second. So, we needed to use a timer, the one we declared in our configuration file. We had a function to say to start the timer : **OS_teStatus OS_eStartSWTimer(OS_thSWTimer hSWTimer, uint32 u32Ticks, void *pvData);**. It took the timer's name, the number of ticks before the timer ends (we used the macro **APP_TIME_MS(n_millisecon)**), and data which are only useful for callback functions (here we provided NULL for our task). It returned a status which could be OS_E_OK (successful), OS_E_BADSWTIMER (invalid software timer handle) or OS_E_SWTIMER_RUNNING (software timer already running). Once our task was called, it was either possible to restart the timer with the same function or to continue to use the same timer (which continued to count while we did some computation) with **OS_teStatus OS_eContinueSWTimer(OS_thSWTimer hSWTimer, uint32 u32Ticks, void *pvData);** (returned the same status than OS_eStartSWTimer). Finally, we needed check the status of the timer with **OS_teStatus OS_eGetSWTimerStatus(OS_thSWTimer hSWTimer);** to know whether it had just expired or not. It returned either OS_E_BADSWTIMER (invalid software timer handle), OS_E_SWTIMER_RUNNING (software timer is running), OS_E_SWTIMER_STOPPED (software timer has been stopped) or OS_E_SWTIMER_EXPIRED (software timer has expired).
+The task was created. We needed to say when to execute our task. The easiest way to it was to use the function **OS_teStatus OS_eActivateTask(OS_thTask hTask);**. It took the task name as an argument and returned if it succeded or not : OS_E_OK (successful), OS_E_BADTASK (invalid task handle used) or OS_E_OVERACTIVATION (maximum number of activations exceeded: 65535). It asked the OS to schedule the given task. However, it was quite limited because we needed to know exactly when to call the task. However, we needed to call the task every second. So, we needed to use a timer, the one we declared in our configuration file. We had a function to say to start the timer : **OS_teStatus OS_eStartSWTimer(OS_thSWTimer hSWTimer, uint32 u32Ticks, void *pvData);**. It took the timer's name, the number of ticks before the timer ends (we used the macro **APP_TIME_MS(n_millisecon)**), and data which are only useful for callback functions (here we provided NULL for our task). It returned a status which could be OS_E_OK (successful), OS_E_BADSWTIMER (invalid software timer handle) or OS_E_SWTIMER_RUNNING (software timer already running). Once our task was called, it was either possible to restart the timer with the same function or to continue to use the same timer (which continued to count while we did some computation) with **OS_teStatus OS_eContinueSWTimer(OS_thSWTimer hSWTimer, uint32 u32Ticks, void *pvData);** (returned the same status than OS_eStartSWTimer). Finally, we needed check the status of the timer with **OS_teStatus OS_eGetSWTimerStatus(OS_thSWTimer hSWTimer);** to know whether it had just expired or not. It returned either OS_E_BADSWTIMER (invalid software timer handle), OS_E_SWTIMER_RUNNING (software timer is running), OS_E_SWTIMER_STOPPED (software timer has been stopped) or OS_E_SWTIMER_EXPIRED (software timer has expired).
 
+#### Application to Time Synchronization
+
+Our first try with time synchronization was to use the given ZCL library (Zigbee Cluster Library). A cluster was something defined in a norm and was a kind of container of data which can be shared in the network. So, it provides us a structure to store data and functions to interact with it. It also update the time every second thanks to a timer and a task. However, at that time, we did not know that we needed to declared everything ourself in the config file. Finally, the library does nothing special as we needed to code almost everything. We used the **time cluster**. The ZCL library can be found in Jennic/Components/ZCL. We had to add the source files of this library to the Makefile.
+
+The first thing we had to do was to give the time to the coordinator. To do so, the created a new **AT command** we called through the API frame. Creating new AT commands was quite easy. We opened the file **src/firmware_at_api.c**. Then, there are two variables : **atCommands** which is the array containg all AT command which could be called from the AT mode, and **atCommandsApiMode** which are commands which can be called from the API mode. We created a new command for API mode, to set the time. So, we added :
+
+		{"ATST", ATST, NULL, API_setTime_CallBack},
+
+to atCommandsApiMode. This is a structure of type **AT_Command_ApiMode_t**, which was defined as follow (in include/firmware_at_api.h) :
+
+	typedef struct
+	{
+	    const char  *name;                  //AT command name
+	    uint8       atCmdIndex;             //AT command index
+	    uint16      *configAddr;            //config address
+	    AT_CommandApiMode_Func_t function;  //AT commands call back function
+	}AT_Command_ApiMode_t;
+
+The name was simply "ATST" (it needed to be four chars). atCmdIndex was a unique number which identified the command and was generally a constant declared in **include/firmware_at_api.h**, in teAtIndex. ATST had as index 0x80. The configAddr was the address of a variable which would be set to the value given after the AT command (see above to learn more about AT commands). Finally, there was the function which was called for this command. The signature and content were :
+
+	int API_setTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr)
+	{
+		uint32 time;
+		memcpy(&time, reqApiSpec->payload.localAtReq.value, 4);
+		vZCL_SetUTCTime(time);
+	
+	    return OK;
+	}
+
+As an argument, we had the received API frame, the frame which would be the answer and the variable which was assigned before and which contained the value of the AT command. We used the memcpy function in order to copy the time stamp in the AT command. Then we used the **vZCL_SetUTCTime** function which took the current time in milliseconds as an argument to set the time of the cluster. To be able to use this function, the time cluster had to be initiliazed. We did that in the initialization of the node, in **src/zigbee_node.**, in the function **node_vInitialise**. We used the function **teZCL_Status eZCL_CreateZCL(tsZCL_Config config);**. This function received a configuration to initialize the cluster. This configuration contained for instance the callback method for the time cluster, but also other useful information. In the callback method, **cbZCL_GeneralCallback** in zigbee_node.c, we caught some event that can happen. Among them, there can be event to request the ZCL mutex.
+
+It was important to mutexes when we had interrupts and concurrent accesses. Using mutexes alloewed us to defined **Critical Sections**. Critical section is a part of the program which prevent the current task to be pre-empted by an other task from the same mutex group (linked to the same muteex in the configuration file), even by a task of higher priority. To enter a critical section, we used **OS_eEnterCriticalSection(name_mutex);** and to leave it : **OS_eExitCriticalSection(name_mutex);** in **vLockZCLMutex** and **vUnockZCLMutex** (zigbee_node.c).
+
+Then, we had to call the Event Handler of the time cluster every second. For that, we had to configure a software timer, **APP_ZclTimer**, linked to a task, **APP_ZCLTask**, which belonged to the **ZCL mutex** group. In APP_ZCLTask (in zigbee_node.c), we called the event handler, **vZCL_EventHandler**, which took a tsZCL_CallBackEvent as an argument. We put in that structure the kind of event, here E_ZCL_CBET_TIMER.
+
+Then, we had a system to count the time in seconds.
+
+TODO, count in millisecond.
+
+#### Interrupt From a Button
+
+To try our time synchronization, we needed a physical common event. Our first experiment was carried out with a simple button. Later, it would be replaced by an interrupt from a sensor for example. An interrupt was something which has to be scheduled by the OS, so we need to declare it in the config file. The document claims that they have a function a register a callback for I/O interrupts but it did not work. So, we declared an interrupt source, **System Controller"". System controller gathered different kind of interrupt among which the IO ones. Then we declared a task, **sysctrl_callback**, which was stimulated by the interrupt source we had just created.
+
+![interrupt](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/zoom_interrupt.jpg)
+
+The interrupt function was defined in **src/utils_meshbee.c**. It sent a simple frame to the server when the button was pressed. The button was initialized
+in the arduino_setup function. Suli was not enough so we had to use function from JenOs :
+
+	uint32 mask = (1 << D0);
+	vAHI_DioSetDirection(mask, 0);
+	vAHI_DioInterruptEdge(0, mask); // First argument for rising edge
+	vAHI_DioInterruptEnable(mask, 0);
+
+The mask simply indicated which IOs are concerned by a change. We needed to set to 1 the bit at the position of the number of the IO. **vAHI_DioSetDirection** set the direction of the pin, the first arguments are the pins we wanted to change to input and the second to output. **vAHI_DioInterruptEdge** allowed us to change the edge which triggers the interrupt, the first argument being falling and the second rising. Then **vAHI_DioInterruptEnable** was used to enable the interrupt (first argument) or to disable it (second argument).
 
 ## The Interface
 
