@@ -146,9 +146,9 @@ class MeshBee:
         and send the information to the server.
 
         :param data_type the type of data read
-	:param id_sensor The id of the sensor, here MAC address
-	:param data the data measured
-	:param time the time of the measure in milliseconds
+        :param id_sensor The id of the sensor, here MAC address
+        :param data the data measured
+        :param time the time of the measure in milliseconds
         """
         tosend = "http://localhost:9000/measuredata?id=" + id_sensor
         tosend = tosend + "&dataType=" + data_type  + "&data=" + data
@@ -202,7 +202,7 @@ class MeshBee:
         addr_short = map(lambda x: ord(x), payload[2:4])
         addr_long = map(lambda x : '{:02x}'.format(ord(x)), payload[4:12]) #MAC address
         length = ord(payload[12])
-	body = payload[13:13+length]
+        body = payload[13:13+length]
         print(addr_long, body)
         time = ((ord(body[4]) & 0xff) << (8 * 3)) + ((ord(body[5]) & 0xff) << (8 * 2)) + ((ord(body[6]) & 0xff) << (8 * 1)) + ((ord(body[7]) & 0xff))
         time *= 1000
@@ -223,7 +223,7 @@ class MeshBee:
 
     def api_read_frame(self):
         """api_read_frame Read a frame in API mode"""
-	if self.current_mode != "API":
+        if self.current_mode != "API":
             print("Going to API mode...")
             if not self.to_api_mode():
                 print("Problem going to API mode")
@@ -234,8 +234,8 @@ class MeshBee:
                 # It means with receive 4 0x00 as ACK
                 self.meshbee.read(3)
                 return
-	    return
-	length_payload = ord(self.meshbee.read(1))
+            return
+        length_payload = ord(self.meshbee.read(1))
         api_identifier = ord(self.meshbee.read(1))
         payload = self.meshbee.read(length_payload)
         checksum = ord(self.meshbee.read(1))
@@ -254,20 +254,20 @@ class MeshBee:
         to_send = ''.join(self.mac_adresses)
         print('Node read', to_send)
         if to_send != '':
-		print("I am sending ", to_send)
-                try:     
-		    f = urllib2.urlopen("http://localhost:9000/updatesensors?s=" + to_send)
-                    f.close()
-                except urllib2.URLError:
-                    print("No connection with the server")
-                    return 
+            print("I am sending ", to_send)
+            try:     
+                f = urllib2.urlopen("http://localhost:9000/updatesensors?s=" + to_send)
+                f.close()
+            except urllib2.URLError:
+                print("No connection with the server")
+                return 
         else:
-                try:
-	            f = urllib2.urlopen("http://localhost:9000/updatesensors?s=" + '0')
-                    f.close()
-                except urllib2.URLError:
-                    print("No connection with the server")
-                    return 
+            try:
+                f = urllib2.urlopen("http://localhost:9000/updatesensors?s=" + '0')
+                f.close()
+            except urllib2.URLError:
+                print("No connection with the server")
+                return 
 def main():
     """main The main loop"""
     last_time = time.time()
