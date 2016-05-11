@@ -645,3 +645,35 @@ As the server was also on the Raspberry Pi, we just had to send our requests to 
 Finally, we wrote a main function to call all our functions. This is done in an infinite loop. It just called api_read_frame, and from time to time request to read the network topology and send a time stamp.
 
 To run the script, simply type **python2 rpi_script.py** in the Mesh_Bee directory.
+
+## Server
+
+### Introduction
+
+We wrote a HTTP server to retrieve information from the MeshBee network and display it to the user. The server was written using Play Framework, with Scala. We will not explain how Play Framework works nor how to program in Scala. To run the server, we went to **Mesh_Bee/server/bin** and typed **./activator run**. Then we saw the port number appear. The project compiled the first time a page was required.
+
+The configuration of the route can be found in **conf/routes**. The HTML files were in **app/views** and the controllers were in **app/controllers**. The main controller was **HomeController.scala**. The code for the real time printing of data thanks to Web sockets was in **MyWebSocketActor.scala**.
+
+### Record Sensor Data
+
+The first communication we did with the server was with data directly in the HTTP request. So, to send new measured data to the server, we needed to send, to **/measuredata** :
+
+	    tosend = "http://localhost:9000/measuredata?id=" + id_sensor
+        tosend = tosend + "&dataType=" + data_type  + "&data=" + data
+        tosend = tosend + "&time=" + str(time)
+
+ The measured data was caught by the **measureData** function in HomeController.scala. Then, if the data was a special type, we did some computation with the data (for instance, for the temperature, we needed to transform the raw data to degrees). Then, we created a Measure object and stored it. To keep the user updated, we also sent a web socket message to update the chart. Finally, we sent a message to confirm we read the measure.
+
+ The measured date was first stored in a global variable, **measures**. We needed to take care of concurrent accesses. Later, we would change it by a database access, using MongoDB for instance. However, for development purposes, global variables are easier and easy to clean.
+
+ ### Real-time Communication
+
+ The real-time communication was done thanks to web sockets. We handled them asynchronously, thanks to actors, in **app/controllers/MyWebSocketActor.scala**. When we created a web socket, we stored it into a map, mapping. So, when a user connected to the page, it created a web socket. When a new data was received, it was transmitted to all connected users. TODO, update the list of users when closing a web socket.
+
+ ### Checking Connected Devices
+
+ When the python wanted to tell which devices are connected, it sent the list of all MeshBee as a String. Then, we checked if all devices were in the String. Then, the user web page refreshed regularly to keep the printed device list updated. This is done using JavaScript, directly in the HTML page, in app/views.
+
+ ### Charts
+
+ To print the charts, we used a JavaScript library, **Highcharts**. The chart was then loaded when the user clicked on a given device.

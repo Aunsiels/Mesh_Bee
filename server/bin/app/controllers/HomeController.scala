@@ -79,6 +79,7 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     }
   }
 
+  /* Check if the sensor was read before */
   def isSensor(id : String) = {
     this.synchronized {
       HomeController.ids contains id
@@ -90,6 +91,7 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     val currentTime = new java.util.Date(time)
     var temp = 0.0
 
+    /* Here we can do some conversion we did not do on board */
     if (dataType contains "TEMP"){
         if (data != 65532){
           temp = -46.85 + 175.72 * data / 65536.0
@@ -101,9 +103,11 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
           addNewMeasure(id + dataType, temp, currentTime)
         }
     } else {
+        /* Default data, do nothing special */
         temp = data
         addNewMeasure(id + dataType, data, currentTime)
     }
+
     setClass(id + dataType, dataType)
     setStatus(id + dataType, SensorState.Active)
     addNewSensor(id + dataType)
@@ -133,10 +137,12 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     }
   }
 
+  /* Handles the web socket creation */
   def socket(id : String) = WebSocket.accept[String, String] { request =>
     ActorFlow.actorRef(out => MyWebSocketActor.props(out, id))
   }
 
+  /* Send the data chart for a given id */
   def chart(id : String) = Action { implicit request =>
     if (isSensor(id)) {
       Ok(views.html.chart(id, getName(id), getClass(id), toReadableData(id)))
@@ -145,10 +151,12 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     }
   }
 
+  /* Simulation of sensor */
   def sensor = Action {
     Ok(views.html.sensor())
   }
 
+  /* Form to change name sensor */
   val SensorParamsForm = Form(
     mapping(
       "id" -> text,
@@ -156,6 +164,7 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     )(SensorParams.apply)(SensorParams.unapply))
 
 
+  /* A page to modify the parameters of a sensor */
   def modifyParams = Action { implicit request =>
     SensorParamsForm.bindFromRequest.fold(
       formWithErrors => {
@@ -168,11 +177,13 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     )
   }
 
+  /* The page for the sensor modification */
   def params = Action { implicit request =>
     var result = Ok("Nothing to change")
     var SensorParamsFormFill : Form[SensorParams] = null
     for(id <- HomeController.ids){
-      val name = getName(id) 
+      val name = getName(id)
+      /* For now, we can modify one parameter without a correct name */
       if (name == id){
         SensorParamsFormFill = SensorParamsForm.fill(SensorParams(id,""))
         result = Ok(views.html.params(id, SensorParamsFormFill))
@@ -181,24 +192,28 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     result
   }
 
+  /* Get the status of a sensor */
   def getStatus(id : String) = {
     this.synchronized {
       HomeController.status.getOrElse(id, SensorState.Disconnected)
     }
   }
 
+  /* Set the status of a sensor */
   def setStatus(id : String, status : SensorState.Value) = {
     this.synchronized {
       HomeController.status += (id -> status)
     }
   }
 
+  /* Get the list of all sensors */
   def getSensors = {
     this.synchronized {
       HomeController.ids.toList
     }
   }
 
+  /* Create a Json to send the list of sensors */
   def listSensors = Action { implicit request =>
     Ok(Json.toJson(getSensors.map((id : String) => Json.obj(
       "id" -> id,
@@ -207,7 +222,9 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     ))))
   }
 
+  /* When the list of ids is received */
   def updateSensors(ids : String) = Action {
+    /* The list is sent everything packed in one string */
     for(id <- getSensors){
       if (ids contains id.substring(0, id.length() - 4)) {
         setStatus(id, SensorState.Active)
@@ -220,16 +237,22 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
 
 }
 
+/* Describe the state of a sensor */
 object SensorState extends Enumeration {
   val Active, Disconnected, Malfunction = Value
 }
 
+/* Parameters of sensor, for the form modification */
 case class SensorParams(id : String, name : String)
 
+/* Contains a measure */
 case class Measure(date : java.util.Date, measure : Double)
+
+/* Contains information about a sensor */
 case class SensorInfo(id : String, name : String, status : SensorState.Value)
 
 object HomeController {
+  /* Some global variables , they need to be changed to database accesses */
   var measures = Map[String, List[Measure]]()
   var ids = Set[String]()
   var classes = Map[String, String]()
