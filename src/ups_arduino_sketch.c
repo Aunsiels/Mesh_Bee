@@ -31,6 +31,7 @@
 #include "humidity.h"
 #include "zcl.h"
 #include "utils_meshbee.h"
+#include "LSM9DS0.h"
 
 IO_T led_pin;
 
@@ -39,6 +40,8 @@ ANALOG_T lumi_pin;
 const int LUMI = 0;
 
 IO_T button_pin = D0;
+
+static LSM_properties prop;
 
 void arduino_setup(void)
 {
@@ -57,7 +60,31 @@ void arduino_setup(void)
 	vAHI_DioSetDirection(mask, 0);
 	vAHI_DioInterruptEdge(0, mask); // First argument for rising edge
 	vAHI_DioInterruptEnable(mask, 0);
-	
+	LSM_parameters params;
+    params.gScl = G_SCALE_245DPS;
+    params.aScl = A_SCALE_2G;
+    params.mScl = M_SCALE_2GS;
+    params.gODR = G_ODR_95_BW_125;
+    params.aODR = A_ODR_50;
+    params.mODR = M_ODR_50;
+    uint16 status = init_LSM(params);
+    suli_uart_printf(NULL, NULL, "Status : %d\r\n", status);
+
+    calLSM9DS0(&prop);
+    suli_uart_printf(NULL, NULL, "gbias : ");
+    suli_uart_write_float(NULL, NULL, prop.gbias[0], 10);
+    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_write_float(NULL, NULL, prop.gbias[1], 10);
+    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_write_float(NULL, NULL, prop.gbias[2], 10);
+    suli_uart_printf(NULL, NULL, "\r\nabias : ");
+    suli_uart_write_float(NULL, NULL, prop.abias[0], 10);
+    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_write_float(NULL, NULL, prop.abias[1], 10);
+    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_write_float(NULL, NULL, prop.abias[2], 10);
+    suli_uart_printf(NULL, NULL, "\r\n");
+
 #endif
 
     suli_analog_init(&temp_pin, TEMP);
@@ -84,7 +111,33 @@ void arduino_loop(void)
     /*hum = read_humidity();
 	send_frame("HUMI", hum);
 	*/
-	
+
+    readAccel(&prop);
+    readMag(&prop);
+    readGyro(&prop);
+    suli_uart_printf(NULL, NULL, "A : ");
+    suli_uart_write_float(NULL, NULL, calcAccel(prop.ax), 3);
+    suli_uart_printf(NULL, NULL, " , ");
+    suli_uart_write_float(NULL, NULL, calcAccel(prop.ay), 3);
+    suli_uart_printf(NULL, NULL, " , ");
+    suli_uart_write_float(NULL, NULL, calcAccel(prop.az), 3);
+    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_printf(NULL, NULL, "A raw : %d %d %d\r\n", prop.ax, prop.ay, prop.az);
+    suli_uart_printf(NULL, NULL, "G : ");
+    suli_uart_write_float(NULL, NULL, calcGyro(prop.gx), 3);
+    suli_uart_printf(NULL, NULL, " , ");
+    suli_uart_write_float(NULL, NULL, calcGyro(prop.gy), 3);
+    suli_uart_printf(NULL, NULL, " , ");
+    suli_uart_write_float(NULL, NULL, calcGyro(prop.gz), 3);
+    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_printf(NULL, NULL, "M : ");
+    suli_uart_write_float(NULL, NULL, calcMag(prop.mx), 3);
+    suli_uart_printf(NULL, NULL, " , ");
+    suli_uart_write_float(NULL, NULL, calcMag(prop.my), 3);
+    suli_uart_printf(NULL, NULL, " , ");
+    suli_uart_write_float(NULL, NULL, calcMag(prop.mz), 3);
+    suli_uart_printf(NULL, NULL, "\r\n");
+
 	vDelayMsec(3000);
 #else
     /* Finish user job */

@@ -99,13 +99,17 @@ void xmReadBytes(uint8 subAddr, uint8* data, uint8 len){
 }
 
 void gWriteByte(uint8 subAddr, uint8 data){
-    suli_i2c_write(NULL, LSM9DS0_G, &subAddr, 1);
-	suli_i2c_write(NULL, LSM9DS0_G, &data, 1);
+	uint8 tosend[2];
+	tosend[0] = subAddr;
+	tosend[1] = data;
+    suli_i2c_write(NULL, LSM9DS0_G, tosend, 2);
 }
 
 void xmWriteByte(uint8 subAddr, uint8 data){
-    suli_i2c_write(NULL, LSM9DS0_XM, &subAddr, 1);
-	suli_i2c_write(NULL, LSM9DS0_XM, &data, 1);
+	uint8 tosend[2];
+	tosend[0] = subAddr;
+	tosend[1] = data;
+    suli_i2c_write(NULL, LSM9DS0_XM, tosend, 2);
 }
 
 void initGyro(){
@@ -210,6 +214,7 @@ void initAccel(){
 	//xmWriteByte(CTRL_REG3_XM, 0x04);
 	// Interrupt TAP on INT1_XM
 	xmWriteByte(CTRL_REG3_XM, 0x40);
+	xmWriteByte(CLICK_CFG, 0x10);
 }
 
 void initMag(){	
@@ -407,9 +412,9 @@ uint16 init_LSM(LSM_parameters params) {
 // subtract the biases ourselves. This results in a more accurate measurement in general and can
 // remove errors due to imprecise or varying initial placement. Calibration of sensor data in this manner
 // is good practice.
-void calLSM9DS0(float* gbias, float* abias){  
+void calLSM9DS0(LSM_properties* prop){  
   uint8 data[6] = {0, 0, 0, 0, 0, 0};
-  uint16 gyro_bias[3] = {0, 0, 0}, accel_bias[3] = {0, 0, 0};
+  int16 gyro_bias[3] = {0, 0, 0}, accel_bias[3] = {0, 0, 0};
   int samples, ii;
   
   // First get gyro bias
@@ -423,18 +428,18 @@ void calLSM9DS0(float* gbias, float* abias){
 
   for(ii = 0; ii < samples ; ii++) {            // Read the gyro data stored in the FIFO
     gReadBytes(OUT_X_L_G,  &data[0], 6);
-    gyro_bias[0] += (((uint16)data[1] << 8) | data[0]);
-    gyro_bias[1] += (((uint16)data[3] << 8) | data[2]);
-    gyro_bias[2] += (((uint16)data[5] << 8) | data[4]);
+    gyro_bias[0] += (((int16)data[1] << 8) | data[0]);
+    gyro_bias[1] += (((int16)data[3] << 8) | data[2]);
+    gyro_bias[2] += (((int16)data[5] << 8) | data[4]);
   }  
 
   gyro_bias[0] /= samples; // average the data
   gyro_bias[1] /= samples; 
   gyro_bias[2] /= samples; 
-  
-  gbias[0] = (float)gyro_bias[0] * parameters.gRes;  // Properly scale the data to get deg/s
-  gbias[1] = (float)gyro_bias[1] * parameters.gRes;
-  gbias[2] = (float)gyro_bias[2] * parameters.gRes;
+
+  prop->gbias[0] = (float)gyro_bias[0] * parameters.gRes;  // Properly scale the data to get deg/s
+  prop->gbias[1] = (float)gyro_bias[1] * parameters.gRes;
+  prop->gbias[2] = (float)gyro_bias[2] * parameters.gRes;
   
   c = gReadByte(CTRL_REG5_G);
   gWriteByte(CTRL_REG5_G, c & ~0x40);  // Disable gyro FIFO  
@@ -453,18 +458,18 @@ void calLSM9DS0(float* gbias, float* abias){
 
    for(ii = 0; ii < samples ; ii++) {          // Read the accelerometer data stored in the FIFO
     xmReadBytes(OUT_X_L_A, &data[0], 6);
-    accel_bias[0] += (((uint16)data[1] << 8) | data[0]);
-    accel_bias[1] += (((uint16)data[3] << 8) | data[2]);
-    accel_bias[2] += (((uint16)data[5] << 8) | data[4]) - (uint16)(1. / parameters.aRes); // Assumes sensor facing up!
+    accel_bias[0] += (((int16)data[1] << 8) | data[0]);
+    accel_bias[1] += (((int16)data[3] << 8) | data[2]);
+    accel_bias[2] += (((int16)data[5] << 8) | data[4]) - (int16)(1. / parameters.aRes); // Assumes sensor facing up!
   }  
 
   accel_bias[0] /= samples; // average the data
   accel_bias[1] /= samples; 
   accel_bias[2] /= samples; 
   
-  abias[0] = (float)accel_bias[0] * parameters.aRes; // Properly scale data to get gs
-  abias[1] = (float)accel_bias[1] * parameters.aRes;
-  abias[2] = (float)accel_bias[2] * parameters.aRes;
+  prop->abias[0] = (float)accel_bias[0] * parameters.aRes; // Properly scale data to get gs
+  prop->abias[1] = (float)accel_bias[1] * parameters.aRes;
+  prop->abias[2] = (float)accel_bias[2] * parameters.aRes;
 
   c = xmReadByte(CTRL_REG0_XM);
   xmWriteByte(CTRL_REG0_XM, c & ~0x40);    // Disable accelerometer FIFO  
@@ -506,19 +511,19 @@ void readGyro(LSM_properties* prop)
 	prop->gz = (temp[5] << 8) | temp[4]; // Store z-axis values into gz
 }
 
-float calcGyro(uint16 gyro)
+float calcGyro(int16 gyro)
 {
 	// Return the gyro raw reading times our pre-calculated DPS / (ADC tick):
 	return parameters.gRes * gyro; 
 }
 
-float calcAccel(uint16 accel)
+float calcAccel(int16 accel)
 {
 	// Return the accel raw reading times our pre-calculated g's / (ADC tick):
 	return parameters.aRes * accel;
 }
 
-float calcMag(uint16 mag)
+float calcMag(int16 mag)
 {
 	// Return the mag raw reading times our pre-calculated Gs / (ADC tick):
 	return parameters.mRes * mag;
