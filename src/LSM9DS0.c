@@ -212,9 +212,6 @@ void initAccel(){
 	*/
 	// Accelerometer data ready on INT1_XM (0x04)
 	//xmWriteByte(CTRL_REG3_XM, 0x04);
-	// Interrupt TAP on INT1_XM
-	xmWriteByte(CTRL_REG3_XM, 0x40);
-	xmWriteByte(CLICK_CFG, 0x10);
 }
 
 void initMag(){	
@@ -542,4 +539,20 @@ void configGyroInt(uint8 int1Cfg, uint16 int1ThsX, uint16 int1ThsY, uint16 int1T
 		gWriteByte(INT1_DURATION_G, 0x80 | duration);
 	else
 		gWriteByte(INT1_DURATION_G, 0x00);
+}
+
+/* Threshold in g and limit in ms */
+void configTapInt(float threshold, int16 limit){
+	// Interrupt TAP on INT1_XM
+	xmWriteByte(CTRL_REG3_XM, 0x40);
+	// Activate single tap
+	xmWriteByte(CLICK_CFG, 0x10);
+	// Source
+	xmWriteByte(CLICK_SRC, 0x10);
+	// Threshold
+	int ths = (int) (threshold / parameters.aRes);
+	if (ths > 0xFF) ths = 0xFF;
+	xmWriteByte(CLICK_THS, (int16) (ths & 0x7F));
+	// Click time limit = 16 ms
+	xmWriteByte(TIME_LIMIT, limit & 0xFF);
 }

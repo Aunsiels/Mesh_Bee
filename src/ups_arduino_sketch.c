@@ -70,6 +70,8 @@ void arduino_setup(void)
     uint16 status = init_LSM(params);
     suli_uart_printf(NULL, NULL, "Status : %d\r\n", status);
 
+    configTapInt(1.5, 16);
+
     calLSM9DS0(&prop);
     suli_uart_printf(NULL, NULL, "gbias : ");
     suli_uart_write_float(NULL, NULL, prop.gbias[0], 10);
