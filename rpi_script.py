@@ -198,10 +198,10 @@ class MeshBee:
 
         # High part
         packet[5] = chr(0x80);
-        packet[6] = chr((time & (0xff << (8 * 7))) >> (8 * 3))
-        packet[7] = chr((time & (0xff << (8 * 6))) >> (8 * 2))
-        packet[8] = chr((time & (0xff << (8 * 5))) >> (8 * 1))
-        packet[9] = chr((time & (0xff << (8 * 4))) >> (8 * 0))
+        packet[6] = chr((time & (0xff << (8 * 7))) >> (8 * 7))
+        packet[7] = chr((time & (0xff << (8 * 6))) >> (8 * 6))
+        packet[8] = chr((time & (0xff << (8 * 5))) >> (8 * 5))
+        packet[9] = chr((time & (0xff << (8 * 4))) >> (8 * 4))
         packet[-1] = chr(sum(map(lambda x : ord(x), packet[3:-1])) & 0xff)
         self.meshbee.write(''.join(packet))
         self.meshbee.flush()
