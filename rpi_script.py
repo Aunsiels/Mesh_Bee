@@ -153,6 +153,8 @@ class MeshBee:
         tosend = "http://localhost:9000/measuredata?id=" + id_sensor
         tosend = tosend + "&dataType=" + data_type  + "&data=" + str(data)
         tosend = tosend + "&time=" + str(time)
+        print("Time read ", time)
+        print("current time", int((datetime.utcnow() - datetime(1970,1,1)).total_seconds() * 1000))
         try:
             f = urllib2.urlopen(tosend)
             f.close()
@@ -185,7 +187,7 @@ class MeshBee:
         
         # Low part first
         # I create the frame yhich calls APLA = 0x42
-        packet = [chr(0x7e), chr(0x07), chr(0x17), chr(0xec), chr(0x02), chr(0x82), chr(0x00), chr(0x00), chr(0x00), chr(0x00), chr(0x6e)]
+        packet = [chr(0x7e), chr(0x07), chr(0x17), chr(0xec), chr(0x02), chr(0x80), chr(0x00), chr(0x00), chr(0x00), chr(0x00), chr(0x6e)]
         time = int((datetime.utcnow() - datetime(1970,1,1)).total_seconds() * 1000)
         # What is endianness ?
         packet[6] = chr((time & (0xff << (8 * 3))) >> (8 * 3))
@@ -197,7 +199,7 @@ class MeshBee:
         self.meshbee.flush()
 
         # High part
-        packet[5] = chr(0x80);
+        packet[5] = chr(0x82);
         packet[6] = chr((time & (0xff << (8 * 7))) >> (8 * 7))
         packet[7] = chr((time & (0xff << (8 * 6))) >> (8 * 6))
         packet[8] = chr((time & (0xff << (8 * 5))) >> (8 * 5))
