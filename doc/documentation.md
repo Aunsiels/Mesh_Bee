@@ -478,6 +478,16 @@ The temperature reading worked the same way, with **unsigned int read_temperatur
 
 	(float)(-46.85 + (175.72 * rawTemperature / (float)65536))
 
+#### A driver for LSM9DS0
+
+We would like to detect taps. To do so, we needed an accelerometer which can generate interrupts on taps. We had a LSM9DS0, so we used it. To communicate, we used I2C. In the meantime, there were a gyroscope and a magnetometer, so we used it. The driver could be found in **src/LSM9DS0.c**. To initialize the LSM9DS0, we wrote an initialization function, **uint16 init_LSM(LSM\_parameters params);**. It took the parameters to configure the LSM9DS0. There were defined in **include/LSM9DS0.h**. Then, we calibrated the gyroscope and the accelerometer with **void calLSM9DS0(LSM\_properties* prop);**, the bias were stored in LSM\_properties, in the fields **float abias[3]** and **float gbias[3]**.
+
+We wrote functions to read the accelerometer, the gyroscope, the magnetometer and even the temperature. There are : **void   readAccel(LSM\_properties* prop);**, **void   readMag(LSM\_properties* prop);**, **void   readTemp(LSM\_properties* prop);** and **void   readGyro(LSM\_properties* prop);**. These functions write the read values in the fields of LSM\_properties, in ax, ay, az, gx, gy, gz, mx, my, mz and temperature. However, these are raw values. We used functions to do the conversions : **float  calcGyro(int16 gyro);**, **float  calcAccel(int16 accel);** and **float  calcMag(int16 mag);**.
+
+All these functions were just reading and writing in registers. The register description was found in the [documentation](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/LSM9DS0.pdf). Finally, we wrote functions to configure interrupts. These interrupts can be on pin **INTG** for the gyroscpope and on pins **INT1XM** and **INT2XM** for the accelerometer and the magnetometer. The functions were **void configGyroInt(uint8 int1Cfg, uint16 int1ThsX, uint16 int1ThsY, uint16 int1ThsZ, uint8 duration);** and **void configTapInt(float threshold, int8 duration);**. They take configuration (int1Cfg was what went in the register INT1_CFG_G), thresholds and a duration for the interrupt. The tap interrupt is on **INT1XM**.
+
+We connected the LSM9DS0 to the MeshBee (3.3V, GND, SDA, SCL and INT1XM) and used the interrupt handler we defined (see next part).
+
 ### More in Depth
 
 #### Create new Tasks
@@ -677,3 +687,5 @@ The first communication we did with the server was with data directly in the HTT
  ### Charts
 
  To print the charts, we used a JavaScript library, **Highcharts**. The chart was then loaded when the user clicked on a given device.
+
+ ![homepage](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/homepage.png)

@@ -542,7 +542,7 @@ void configGyroInt(uint8 int1Cfg, uint16 int1ThsX, uint16 int1ThsY, uint16 int1T
 }
 
 /* Threshold in g and limit in ms */
-void configTapInt(float threshold, int16 limit){
+void configTapInt(float threshold, int8 limit){
 	// Interrupt TAP on INT1_XM
 	xmWriteByte(CTRL_REG3_XM, 0x40);
 	// Activate single tap
@@ -553,6 +553,6 @@ void configTapInt(float threshold, int16 limit){
 	int ths = (int) (threshold / parameters.aRes);
 	if (ths > 0xFF) ths = 0xFF;
 	xmWriteByte(CLICK_THS, (int16) (ths & 0x7F));
-	// Click time limit = 16 ms
+	// Click time limit
 	xmWriteByte(TIME_LIMIT, limit & 0xFF);
 }

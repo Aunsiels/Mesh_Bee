@@ -59,7 +59,7 @@ void arduino_setup(void)
 	vAHI_DioSetDirection(mask, 0);
 	vAHI_DioInterruptEdge(0, mask); // First argument for rising edge
 	vAHI_DioInterruptEnable(mask, 0);
-	LSM_parameters params;
+	/*LSM_parameters params;
     params.gScl = G_SCALE_245DPS;
     params.aScl = A_SCALE_2G;
     params.mScl = M_SCALE_2GS;
@@ -84,7 +84,7 @@ void arduino_setup(void)
     suli_uart_write_float(NULL, NULL, prop.abias[1], 10);
     suli_uart_printf(NULL, NULL, "\r\n");
     suli_uart_write_float(NULL, NULL, prop.abias[2], 10);
-    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_printf(NULL, NULL, "\r\n");*/
 
 #endif
 
@@ -113,7 +113,7 @@ void arduino_loop(void)
 	send_frame("HUMI", hum);
 	*/
 
-    readAccel(&prop);
+    /*readAccel(&prop);
     readMag(&prop);
     readGyro(&prop);
     suli_uart_printf(NULL, NULL, "A : ");
@@ -137,7 +137,7 @@ void arduino_loop(void)
     suli_uart_write_float(NULL, NULL, calcMag(prop.my), 3);
     suli_uart_printf(NULL, NULL, " , ");
     suli_uart_write_float(NULL, NULL, calcMag(prop.mz), 3);
-    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_printf(NULL, NULL, "\r\n");*/
 
 	vDelayMsec(3000);
 #else
