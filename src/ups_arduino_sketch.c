@@ -29,7 +29,6 @@
 #include "firmware_sleep.h"
 #include "suli.h"
 #include "humidity.h"
-#include "zcl.h"
 #include "utils_meshbee.h"
 #include "LSM9DS0.h"
 

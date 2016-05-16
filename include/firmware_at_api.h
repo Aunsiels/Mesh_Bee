@@ -70,8 +70,9 @@ typedef enum
     ATTP = 0x68,  //for test
     ATIO = 0x70,  //set IOs
     ATAD = 0x72,  //read ADC value from AD1 AD2 AD3 AD4
-	ATST = 0x80,  //Set time of a node
-    ATRT = 0x81   //Read time	
+	ATSH = 0x80,  //Set High time of a node
+    ATRT = 0x81,  //Read time	
+    ATSL = 0x82,  // Set Low time
 }teAtIndex;
 
 /* API mode AT return value */

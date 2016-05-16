@@ -4,14 +4,12 @@
 #include "firmware_api_pack.h"
 #include "firmware_at_api.h"
 #include "firmware_aups.h"
-#include "zcl.h"
-
+#include "time_sync.h"
 
 /* Interrupt handler to catch interrupts from the System Controller */
 OS_ISR(sysctrl_callback){
 	// To remember the last time it was call and avoid to many calls
-	// TODO This can overflow, as suli_millis overflow after around 50 days
-	static unsigned int last_D0 = 0;
+	static uint64 last_D0 = 0;
 	
 	uint32 status = u32AHI_DioInterruptStatus();
 	//We check if the callback was called by D0
@@ -30,30 +28,40 @@ OS_ISR(sysctrl_callback){
 void send_frame(char* name, int data){
 	uint8 tmp[sizeof(tsApiSpec)]={0};
     tsApiSpec apiSpec;
-	//Construct the frame
-	sprintf(tmp, "NAMEXXXX%d",
-            data);
-	
-    // Include the name
-    tmp[0] = name[0];
-    tmp[1] = name[1];
-    tmp[2] = name[2];
-    tmp[3] = name[3];
 	
 	// Include the time stamp
-	if (bZCL_GetTimeHasBeenSynchronised()){
-        uint32 time = u32ZCL_GetUTCTime();
+	if (timeHasBeenSynchronised()){
+		// We use tmp to build the frame
+        // Include the name
+        tmp[0] = name[0];
+        tmp[1] = name[1];
+        tmp[2] = name[2];
+        tmp[3] = name[3];
+
+        uint64 time = getTime();
 		char * time_ptr = (char *) &time;
 		
 		/* To debug, TODO remove it */
 		uart_printf("Time : %d s\r\n", time);
 		
-		tmp[4] = time_ptr[0];
-		tmp[5] = time_ptr[1];
-		tmp[6] = time_ptr[2];
-		tmp[7] = time_ptr[3];
+		tmp[4]  = time_ptr[0];
+		tmp[5]  = time_ptr[1];
+		tmp[6]  = time_ptr[2];
+		tmp[7]  = time_ptr[3];
+		tmp[8]  = time_ptr[4];
+		tmp[9]  = time_ptr[5];
+		tmp[10] = time_ptr[6];
+		tmp[11] = time_ptr[7];
+
+        char * ptr_data = (char *) &data;
+
+        /* Include data */
+        tmp[12] = ptr_data[0];
+        tmp[13] = ptr_data[1];
+        tmp[14] = ptr_data[2];
+        tmp[15] = ptr_data[3];
 		
-		PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, strlen(tmp+8) + 8);
+		PCK_vApiSpecDataFrame(&apiSpec, 0xec, 0x00, tmp, 16);
 
         /* Air to Coordinator */
         uint16 size = i32CopyApiSpec(&apiSpec, tmp);

@@ -37,8 +37,8 @@
 #include "firmware_cmi.h"
 #include "firmware_sleep.h"
 #include "suli.h"
-#include "zcl.h"
-#include "zcl_options.h"
+#include "time_sync.h"
+
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
 /****************************************************************************/
@@ -60,7 +60,8 @@ int API_Adc_callBack(tsApiSpec *inputApiSpec, tsApiSpec *retApiSpec, uint16 *reg
 int API_i32Gpio_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 int API_listAllNodes_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 int API_showInfo_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
-int API_setTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
+int API_setHighTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
+int API_setLowTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 
 int AT_printTT(uint16 *regAddr);
 int AT_readTime(uint16 *regAddr);
@@ -227,7 +228,9 @@ static AT_Command_ApiMode_t atCommandsApiMode[] =
     // list all nodes of the whole network, this will take a little more time
     { "ATLA", ATLA, NULL, API_listAllNodes_CallBack },
 	
-	{"ATST", ATST, NULL, API_setTime_CallBack},
+	{ "ATSH", ATSH, NULL, API_setHighTime_CallBack},
+
+    { "ATSL", ATSL, NULL, API_setLowTime_CallBack},
 
 };
 
@@ -235,8 +238,8 @@ static AT_Command_ApiMode_t atCommandsApiMode[] =
 int AT_readTime(uint16 *regAddr)
 {
 	uart_printf("Readtime\r\n");
-	if (bZCL_GetTimeHasBeenSynchronised()){
-        uart_printf("Time : %d s\r\n", u32ZCL_GetUTCTime());
+	if (timeHasBeenSynchronised()){
+        uart_printf("Time : %ld s\r\n", getTime());
 	} else {
 		uart_printf("Nothing to read\r\n");
 	}
@@ -1547,7 +1550,7 @@ int API_listAllNodes_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uin
 
 /****************************************************************************
 *
-* NAME: API_setTime_CallBack
+* NAME: API_setHighTime_CallBack
 *
 * DESCRIPTION:
 *
@@ -1559,12 +1562,35 @@ int API_listAllNodes_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uin
 * apiSpec, returned tsApiSpec Frame
 *
 ****************************************************************************/
-int API_setTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr)
+int API_setHighTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr)
 {
 	uint32 time;
 	memcpy(&time, reqApiSpec->payload.localAtReq.value, 4);
-	vZCL_SetUTCTime(time);
+	setHighTime(time);
 	
+    return OK;
+}
+
+/****************************************************************************
+*
+* NAME: API_setLowTime_CallBack
+*
+* DESCRIPTION:
+*
+*
+* PARAMETERS: Name         RW  Usage
+*
+* RETURNS:
+* int
+* apiSpec, returned tsApiSpec Frame
+*
+****************************************************************************/
+int API_setLowTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr)
+{
+    uint32 time;
+    memcpy(&time, reqApiSpec->payload.localAtReq.value, 4);
+    setLowTime(time);
+    
     return OK;
 }
 

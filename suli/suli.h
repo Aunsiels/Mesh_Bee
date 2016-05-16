@@ -134,17 +134,15 @@ void suli_delay_ms(uint32 ms);                 // delay ms
 
 /*
  * Returns the number of milliseconds since your board began running the current program. 
- * This number will overflow (go back to zero), after approximately 50 days.
 */
-uint32 suli_millis(void);
+uint64 suli_millis(void);
 
 
 /*
  * Returns the number of microseconds since your board began running the current program. 
- * This number will overflow (go back to zero), after approximately 70 minutes.
  * Note: there are 1,000 microseconds in a millisecond and 1,000,000 microseconds in a second.
  */
-uint32 suli_micros(void);
+uint64 suli_micros(void);
 
 
 // I2C

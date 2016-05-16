@@ -168,7 +168,6 @@ APP_BLD_DIR     = $(APP_BASE)/build
 APP_SRC_DIR     = $(APP_BASE)/src
 UTIL_SRC_DIR    = $(COMPONENTS_BASE_DIR)/Utilities/Source
 SULI_DIR        = $(APP_BASE)/suli
-ZCL_BASE        = $(COMPONENTS_BASE_DIR)/ZCL
 
 ###############################################################################
 # Application Source files
@@ -190,7 +189,6 @@ APPSRC += app_timer_driver.c
 #auto scan all c files under folder: src & suli
 APPSRC += $(notdir $(wildcard $(APP_SRC_DIR)/*.c))
 APPSRC += $(notdir $(wildcard $(SULI_DIR)/*.c))
-APPSRC += $(notdir $(wildcard $(ZCL_BASE)/Source/*.c))
 
 ##########
 APP_ZPSCFG = MeshBee.zpscfg
@@ -205,7 +203,6 @@ INCFLAGS += -I$(SULI_DIR)
 INCFLAGS += -I$(COMPONENTS_BASE_DIR)/Utilities/Include
 INCFLAGS += -I$(COMPONENTS_BASE_DIR)/Recal/Include
 INCFLAGS += -I$(COMPONENTS_BASE_DIR)/OVLY/Include
-INCFLAGS += -I$(ZCL_BASE)/Include
 
 ###############################################################################
 # Application libraries
@@ -249,7 +246,6 @@ APPDEPS = $(APPOBJS:.o=.d)
 APPLDLIBS := $(foreach lib,$(APPLIBS),$(if $(wildcard $(addprefix $(COMPONENTS_BASE_DIR)/Library/lib,$(addsuffix _$(TEMPCHIP).a,$(lib)))),$(addsuffix _$(TEMPCHIP),$(lib)),$(addsuffix _$(JENNIC_CHIP_FAMILY),$(lib))))
 LDLIBS := $(APPLDLIBS) $(LDLIBS)
 
-LDFLAGS += -L$(ZCL_BASE)/Build
 LDFLAGS += -L$(STACK_BASE_DIR)/SE/Build
 LDFLAGS += -L$(STACK_BASE_DIR)/ZBPro/Build
 
@@ -258,7 +254,7 @@ LDFLAGS += -L$(STACK_BASE_DIR)/ZBPro/Build
 
 .PHONY: all clean
 # Path to directories containing application source 
-vpath % $(APP_SRC_DIR):$(APP_BLD_DIR)/gen:$(SULI_DIR):$(SE_SRC_DIRS):$(UTIL_SRC_DIR):$(ZCL_BASE)/Source
+vpath % $(APP_SRC_DIR):$(APP_BLD_DIR)/gen:$(SULI_DIR):$(SE_SRC_DIRS):$(UTIL_SRC_DIR)
 
 
 all: $(APP_BLD_DIR)/output/$(TARGET)_$(JENNIC_CHIP)$(BIN_SUFFIX).bin

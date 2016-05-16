@@ -42,8 +42,7 @@
 #include "firmware_sleep.h" //for scheduleSleep()
 #include "suli.h"
 #include "firmware_rpc.h"
-#include "zcl.h"
-#include "zcl_options.h"
+#include "time_sync.h"
 
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
@@ -84,9 +83,6 @@ PUBLIC tsDevice                 g_sDevice;
 PRIVATE uint8    u8ChildOfInterest = 0;
 PRIVATE uint8    u8FailedRouteDiscoveries = 0;
 
-PRIVATE uint32 u32ZCL_Heap[100]; //TODO
-PRIVATE uint32 u32ZCLMutexCount = 0;
-
 //mac address which will be used when debug or manufactory.
 //it will be place at .ro_mac_address section which can be
 //written by NXP flash programmer directly.
@@ -112,27 +108,6 @@ IO_T SleepLed;
 /****************************************************************************/
 /***        Local Functions                                               ***/
 /****************************************************************************/
-
-OS_TASK(APP_ZCLTask)
-{
-	tsZCL_CallBackEvent sCallBackEvent;
-	ZPS_tsAfEvent sStackEvent;
-
-	/* Clear the ZigBee stack event */
-	sStackEvent.eType = ZPS_EVENT_NONE;
-
-	/* Point the ZCL event at the defined ZigBee stack event */
-	sCallBackEvent.pZPSevent = &sStackEvent;
-
-	/* 1 second tick, pass it to the ZCL */
-	if(OS_eGetSWTimerStatus(APP_ZclTimer) == OS_E_SWTIMER_EXPIRED)
-	{
-		DBG_vPrintf(TRACE_NODE, "ZCL Task activated by timer\n");
-		sCallBackEvent.eEventType = E_ZCL_CBET_TIMER;
-		vZCL_EventHandler(&sCallBackEvent);
-		OS_eContinueSWTimer(APP_ZclTimer, ONE_SECOND_TICK_TIME, NULL);
-	}
-}
 
 /****************************************************************************
  *
@@ -707,112 +682,6 @@ PUBLIC void deleteStackPDM()
 
 /****************************************************************************
  *
- * NAME: vLockZCLMutex
- *
- * DESCRIPTION:
- * Grabs and maintains a counting mutex
- *
- * RETURNS:
- * void
- *
- ****************************************************************************/
-PUBLIC void vLockZCLMutex(void)
-{
-	if (u32ZCLMutexCount == 0)
-	{
-		OS_eEnterCriticalSection(ZCL);
-	}
-	u32ZCLMutexCount++;
-}
-
-
-/****************************************************************************
- *
- * NAME: vUnlockZCLMutex
- *
- * DESCRIPTION:
- * Releases and maintains a counting mutex
- *
- * RETURNS:
- * void
- *
- ****************************************************************************/
-PUBLIC void vUnlockZCLMutex(void)
-{
-	u32ZCLMutexCount--;
-	if (u32ZCLMutexCount == 0)
-	{
-		OS_eExitCriticalSection(ZCL);
-	}
-}
-
-/****************************************************************************
- *
- * NAME: cbZCL_GeneralCallback
- *
- * DESCRIPTION:
- * General callback for ZCL events
- *
- * RETURNS:
- * void
- *
- ****************************************************************************/
-PRIVATE void cbZCL_GeneralCallback(tsZCL_CallBackEvent *psEvent)
-{
-	ZPS_teStatus eStatus;
-
-	switch(psEvent->eEventType)
-	{
-		case E_ZCL_CBET_LOCK_MUTEX:
-			vLockZCLMutex();
-		break;
-
-		case E_ZCL_CBET_UNLOCK_MUTEX:
-			vUnlockZCLMutex();
-		break;
-
-		case E_ZCL_CBET_UNHANDLED_EVENT:
-		break;
-
-		case E_ZCL_CBET_READ_ATTRIBUTES_RESPONSE:
-			DBG_vPrintf(TRACE_NODE, "EVT: Read attributes response\r\n");
-		break;
-
-		case E_ZCL_CBET_READ_REQUEST:
-			DBG_vPrintf(TRACE_NODE, "EVT: Read request\r\n");
-		break;
-
-		case E_ZCL_CBET_DEFAULT_RESPONSE:
-			DBG_vPrintf(TRACE_NODE, "EVT: Default response\r\n");
-		break;
-
-		case E_ZCL_CBET_ERROR:
-			eStatus = eZCL_GetLastZpsError();
-			DBG_vPrintf(TRACE_NODE, "EVT: Error - Stack returned 0x%x\r\n", eStatus);
-		break;
-
-		case E_ZCL_CBET_TIMER:
-		    DBG_vPrintf(TRACE_NODE, "EVT: Timer\r\n");
-		break;
-
-		case E_ZCL_CBET_ZIGBEE_EVENT:
-			DBG_vPrintf(TRACE_NODE, "EVT: ZigBee\r\n");
-		break;
-
-		case E_ZCL_CBET_CLUSTER_CUSTOM:
-			DBG_vPrintf(TRACE_NODE, "EP EVT: Custom\r\n");
-		break;
-
-		default:
-			DBG_vPrintf(TRACE_NODE, "Invalid event type\r\n");
-		break;
-	}
-}
-
-
-
-/****************************************************************************
- *
  * NAME: node_vInitialise
  *
  * DESCRIPTION:
@@ -984,22 +853,7 @@ PUBLIC void node_vInitialise(void)
     }
     /* AT mode don't need init */
 	
-	/* Start the tick timer */
-	OS_eStartSWTimer(APP_ZclTimer, APP_TIME_MS(1000), NULL);
-	
-	/* Added by me */
-	teZCL_Status eStatus;
-    tsZCL_Config sConfig;
-
-    // Ensure signature fn's are NULL unless explicitly set
-    memset(&sConfig, 0, sizeof(sConfig));
-
-    sConfig.pfZCLcallBackFunction = &cbZCL_GeneralCallback;
-    sConfig.hAPdu = apduZCL;
-    sConfig.u32ZCL_HeapSizeInWords = sizeof(u32ZCL_Heap) / sizeof(uint32);
-    sConfig.pu32ZCL_Heap = &u32ZCL_Heap[0];
-	
-	eZCL_CreateZCL(&sConfig);
+	init_time_sync();
 	
 }
 

@@ -151,7 +151,7 @@ class MeshBee:
         :param time the time of the measure in milliseconds
         """
         tosend = "http://localhost:9000/measuredata?id=" + id_sensor
-        tosend = tosend + "&dataType=" + data_type  + "&data=" + data
+        tosend = tosend + "&dataType=" + data_type  + "&data=" + str(data)
         tosend = tosend + "&time=" + str(time)
         try:
             f = urllib2.urlopen(tosend)
@@ -182,13 +182,26 @@ class MeshBee:
 
     def send_time(self):
         """send_time send the current time to all nodes"""
+        
+        # Low part first
         # I create the frame yhich calls APLA = 0x42
-        packet = [chr(0x7e), chr(0x07), chr(0x17), chr(0xec), chr(0x02), chr(0x80), chr(0x00), chr(0x00), chr(0x00), chr(0x00), chr(0x6e)]
-        time = int((datetime.utcnow() - datetime(1970,1,1)).total_seconds())
+        packet = [chr(0x7e), chr(0x07), chr(0x17), chr(0xec), chr(0x02), chr(0x82), chr(0x00), chr(0x00), chr(0x00), chr(0x00), chr(0x6e)]
+        time = int((datetime.utcnow() - datetime(1970,1,1)).total_seconds() * 1000)
+        # What is endianness ?
         packet[6] = chr((time & (0xff << (8 * 3))) >> (8 * 3))
         packet[7] = chr((time & (0xff << (8 * 2))) >> (8 * 2))
         packet[8] = chr((time & (0xff << (8 * 1))) >> (8 * 1))
         packet[9] = chr((time & (0xff << (8 * 0))) >> (8 * 0))
+        packet[-1] = chr(sum(map(lambda x : ord(x), packet[3:-1])) & 0xff)
+        self.meshbee.write(''.join(packet))
+        self.meshbee.flush()
+
+        # High part
+        packet[5] = chr(0x80);
+        packet[6] = chr((time & (0xff << (8 * 7))) >> (8 * 3))
+        packet[7] = chr((time & (0xff << (8 * 6))) >> (8 * 2))
+        packet[8] = chr((time & (0xff << (8 * 5))) >> (8 * 1))
+        packet[9] = chr((time & (0xff << (8 * 4))) >> (8 * 0))
         packet[-1] = chr(sum(map(lambda x : ord(x), packet[3:-1])) & 0xff)
         self.meshbee.write(''.join(packet))
         self.meshbee.flush()
@@ -204,9 +217,19 @@ class MeshBee:
         length = ord(payload[12])
         body = payload[13:13+length]
         print(addr_long, body)
-        time = ((ord(body[4]) & 0xff) << (8 * 3)) + ((ord(body[5]) & 0xff) << (8 * 2)) + ((ord(body[6]) & 0xff) << (8 * 1)) + ((ord(body[7]) & 0xff))
-        time *= 1000
-        self.decrypt_message(body[0:4], ''.join(addr_long), body[8:], time)
+        time = ((ord(body[4]) & 0xff) << (8 * 7))  +
+                ((ord(body[5]) & 0xff) << (8 * 6)) +
+                ((ord(body[6]) & 0xff) << (8 * 5)) +
+                ((ord(body[7]) & 0xff) << (8 * 4)) +
+                ((ord(body[8]) & 0xff) << (8 * 3)) +
+                ((ord(body[9]) & 0xff) << (8 * 2)) +
+                ((ord(body[10]) & 0xff) << (8 * 1)) +
+                ((ord(body[11]) & 0xff))
+        data = ((ord(body[12]) & 0xff) << (8 * 3))  +
+                ((ord(body[13]) & 0xff) << (8 * 2)) +
+                ((ord(body[14]) & 0xff) << (8 * 1)) +
+                ((ord(body[15]) & 0xff))
+        self.decrypt_message(body[0:4], ''.join(addr_long), data, time)
 
     def api_topo_frame(self, payload):
         """api_data_frame Read a data frame

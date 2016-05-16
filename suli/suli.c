@@ -57,7 +57,7 @@ static void strreverse(char *begin, char *end);
 /****************************************************************************/
 /***        Local Variables                                               ***/
 /****************************************************************************/
-volatile uint32 timer0_overflow_count = 0;
+volatile uint64 timer0_overflow_count = 0;
 volatile uint32 timer0_millis = 0;
 
 static const double pow10[] = { 1, 10, 100, 1000, 10000, 100000, 1000000,
@@ -301,7 +301,7 @@ void suli_delay_us(uint32 us)
  */
 void suli_delay_ms(uint32 ms)
 {
-    uint32 mark_time = suli_millis();
+    uint64 mark_time = suli_millis();
     while(suli_millis() - mark_time < ms);
 }
 
@@ -310,7 +310,7 @@ void suli_delay_ms(uint32 ms)
  * Returns the number of milliseconds since your board began running the current program.
  * This number will overflow (go back to zero), after approximately 50 days.
  */
-uint32 suli_millis()
+uint64 suli_millis()
 {
     return (u16AHI_TimerReadCount(E_AHI_TIMER_0)/1000 + 60 * timer0_overflow_count);
 }
@@ -321,7 +321,7 @@ uint32 suli_millis()
  * This number will overflow (go back to zero), after approximately 70 minutes.
  * Note: there are 1,000 microseconds in a millisecond and 1,000,000 microseconds in a second.
  */
-uint32 suli_micros()
+uint64 suli_micros()
 {
     return (u16AHI_TimerReadCount(E_AHI_TIMER_0) + 60000 * timer0_overflow_count);
 }
