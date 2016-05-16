@@ -217,17 +217,17 @@ class MeshBee:
         length = ord(payload[12])
         body = payload[13:13+length]
         print(addr_long, body)
-        time = ((ord(body[4]) & 0xff) << (8 * 7))  +
-                ((ord(body[5]) & 0xff) << (8 * 6)) +
-                ((ord(body[6]) & 0xff) << (8 * 5)) +
-                ((ord(body[7]) & 0xff) << (8 * 4)) +
-                ((ord(body[8]) & 0xff) << (8 * 3)) +
-                ((ord(body[9]) & 0xff) << (8 * 2)) +
-                ((ord(body[10]) & 0xff) << (8 * 1)) +
+        time = ((ord(body[4]) & 0xff) << (8 * 7)) + \
+                ((ord(body[5]) & 0xff) << (8 * 6)) + \
+                ((ord(body[6]) & 0xff) << (8 * 5)) + \
+                ((ord(body[7]) & 0xff) << (8 * 4)) + \
+                ((ord(body[8]) & 0xff) << (8 * 3)) + \
+                ((ord(body[9]) & 0xff) << (8 * 2)) + \
+                ((ord(body[10]) & 0xff) << (8 * 1)) + \
                 ((ord(body[11]) & 0xff))
-        data = ((ord(body[12]) & 0xff) << (8 * 3))  +
-                ((ord(body[13]) & 0xff) << (8 * 2)) +
-                ((ord(body[14]) & 0xff) << (8 * 1)) +
+        data = ((ord(body[12]) & 0xff) << (8 * 3))  + \
+                ((ord(body[13]) & 0xff) << (8 * 2)) + \
+                ((ord(body[14]) & 0xff) << (8 * 1)) + \
                 ((ord(body[15]) & 0xff))
         self.decrypt_message(body[0:4], ''.join(addr_long), data, time)
 
