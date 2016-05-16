@@ -557,7 +557,17 @@ Then, we had to call the Event Handler of the time cluster every second. For tha
 
 Then, we had a system to count the time in seconds.
 
-TODO, count in millisecond.
+#### Time Synchronization V2
+
+Counting in seconds was too restrictive for what we wanted to do. So we decided to rewrite all the synchronization part to be more flexible and count in milliseconds. The first thing we had to change was to use **uint64** instead of uint32. This way, we avoided overflow. In the meanwhile, we also changed the SULI library to also use uint64. The new time synchronization code was written in **src/time\_sync.c**.
+
+The use was almost the same. There was a function to initialize the variables of the time synchronization : **void init\_time\_sync(void);**. Then, it was possible to set the low part and the high part of the timestamp with **void setHighTime(uint32 time);** and **void setLowTime(uint32 time);**. We had to separate the lowest part and the highest part because for the AT commands, we were only allowed to transmit four bytes of date, half of a uint64. Then, we were able to check whether the time is synchronized or not with **int timeHasBeenSynchronised(void);** and finally, we can get current time with **uint64 getTime(void);**. All in all, we replaced all previous functions.
+
+However, we erased the timer part as we did not need to count seconds anymore : we used the SULI **suli_millis** function to keep track of the time. We still used mutex as we had concurrent accesses.
+
+As we separated the highest part and the lowest part of the timestamp, we needed to do two different AT function to set the time. ATST was replaced by **ATSH** (for Set High) and **ATSL** (for Set Low). The way it worked was exactly the same, except that it called the two functions to set the time.
+
+Once we did that, the communication protocol changed. A frame was then composed of four bytes to describe the value read, eight bytes for the timestamp and four bytes for the data, which was then totally raw (whereas before it was a string). So, the size was fixed.
 
 #### Interrupt From a Button
 
@@ -649,6 +659,10 @@ The problem was that changing the mode can be long (up to a second) and moreover
 We wrote a general function to read a frame : **api_read_frame()**. There could be different kind of frames : data frame, topology frame,... We recognized which kind of frame it was and then call the good function to decrypt the payload : api_data_frame(payload), api_topo_frame(payload),... While reading the data frame, we retrieved the MAC address, so it was removed from our custom protocol.
 
 So, the new protocol looked like that : 4 bytes to identify the value read, 4 bytes for the time stamp and the rest for the value. We had a time stamp. To share the time, we broadcast an AT command, **ATST**. This was done thanks to the function **send_time()**, which sent the time in second. Finally, we wrote a function to request the nodes on the network : **request_topo()**. We did not have to wait for the result as we had done before : each module answered with a frame which was decrypted when received. The mac addresses were stored in an attribute of MeshBee, and they were all sent with **send_mac_addresses()**.
+
+Once we changed the time synchronization part, the protocol became : four bytes to describe the value read, eight bytes for the timestamp and four bytes for the data, which was then totally raw (whereas before it was a string). So, the size was fixed (see above). The **send_time()** function then sent time in milliseconds. **WARNING** : the way bytes were sent wass the opposite of the way it was in memory. This was because the **endianess** was not the same on the MeshBee (Big Endian) and the computer.
+
+TODO, check endianess.
 
 As the server was also on the Raspberry Pi, we just had to send our requests to the localhost domain, port 9000. Then to send all the mac addresses, we opened the URL **http://localhost:9000/updatesensors?s=** , followed by all MAC addresses.
 
