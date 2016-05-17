@@ -5,7 +5,15 @@ import time
 from datetime import datetime
 import serial
 import urllib2
+import RPi.GPIO as GPIO
 from time import sleep
+
+
+def signed(nbr):
+    if nbr &  0x80000000:
+        return -(0x7FFFFFFF - (nbr & 0x7FFFFFFF) + 1)
+    else :
+        return nbr
 
 class MeshBee:
     """MeshBee: To communicate with a MeshBee"""
@@ -17,6 +25,7 @@ class MeshBee:
         # Will contain mac addresses read when requesting the topologie
         self.mac_adresses = []
         self.current_mode = ""
+        self.read_values = dict()
 
     def check_at_mode(self):
         """check_at_mode Check if we are in at mode"""
@@ -110,7 +119,7 @@ class MeshBee:
         reading = self.meshbee.readline()
         reading = self.meshbee.readline()
         if reading == "":
-            print("No node detected on the network")
+            print("No node detected on thek network")
             return "NONODE"
         else:
             if not "Node resp" in reading:
@@ -151,17 +160,15 @@ class MeshBee:
         :param data the data measured
         :param time the time of the measure in milliseconds
         """
-        tosend = "http://localhost:9000/measuredata?id=" + id_sensor
-        tosend = tosend + "&dataType=" + data_type  + "&data=" + str(data)
-        tosend = tosend + "&time=" + str(time)
-        print("Time read ", time)
-        print("current time", int((datetime.utcnow() - datetime(1970,1,1)).total_seconds() * 1000))
-        try:
-            f = urllib2.urlopen(tosend)
-            f.close()
-        except urllib2.URLError:
-            print("No connection with the server")
-            return 
+        if data_type == "BTN0" or data_type == "DRFT":
+            if id_sensor in self.read_values.keys():
+               # Compare two meshbees
+               #self.read_values[id_sensor].append(str(time))
+               # Compare server
+               self.read_values[id_sensor].append(str(signed(data)))
+            else:
+                #self.read_values[id_sensor] =  [str(time)]
+                self.read_values[id_sensor] =  [str(signed(data))]
 
     def checksum(self, check, payload):
         """checksum Check the payload
@@ -201,6 +208,7 @@ class MeshBee:
 
         # If I try to send data too auickly, I have problems
         sleep(1)
+        time = int((datetime.utcnow() - datetime(1970,1,1)).total_seconds() * 1000)
         # High part
         packet[5] = chr(0x82);
         packet[6] = chr((time & (0xff << (8 * 7))) >> (8 * 7))
@@ -296,18 +304,45 @@ class MeshBee:
             except urllib2.URLError:
                 print("No connection with the server")
                 return 
+
+btn = 19
+
 def main():
     """main The main loop"""
-    last_time = time.time()
+    GPIO.cleanup()
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(btn, GPIO.OUT)
+    GPIO.output(btn, True)
     bee = MeshBee()
     bee.to_api_mode()
+    sleep(2)
     bee.send_time()
-    while True:
-        if time.time() - last_time > 30:
+    GPIO.output(btn, False)
+    sleep(0.5)
+    GPIO.output(btn, True)
+    last_time = time.time()
+    counter = 0
+    print("Try ", counter)
+    while counter < 8*60:
+        if time.time() - last_time > 60:
+            # Send BTN0
+            #GPIO.output(btn, False)
+            #sleep(0.05)
+            #GPIO.output(btn, True)
+
+            # For drift
             bee.send_time()
-            bee.request_topo()
+
             last_time = time.time()
+            counter += 1
+            print("Try ", counter)
         bee.api_read_frame()
+    f = open("result.csv", "w")
+    for k in bee.read_values.keys():
+        f.write(",".join(bee.read_values[k]))
+        f.write("\n")
+    f.close()
+    GPIO.cleanup()
     return 0
 
 if __name__ == "__main__":
