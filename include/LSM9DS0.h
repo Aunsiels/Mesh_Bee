@@ -204,7 +204,7 @@ typedef struct {
 } LSM_parameters;
 
 uint16 init_LSM(LSM_parameters params);
-void   calLSM9DS0();
+void   calLSM9DS0(LSM_properties* prop);
 void   readAccel(LSM_properties* prop);
 void   readMag(LSM_properties* prop);
 void   readTemp(LSM_properties* prop);
@@ -213,6 +213,6 @@ float  calcGyro(int16 gyro);
 float  calcAccel(int16 accel);
 float  calcMag(int16 mag);
 void   configGyroInt(uint8 int1Cfg, uint16 int1ThsX, uint16 int1ThsY, uint16 int1ThsZ, uint8 duration);
-void   configTapInt(float threshold, int16 limit);
+void   configTapInt(float threshold, int8 limit);
 
 #endif

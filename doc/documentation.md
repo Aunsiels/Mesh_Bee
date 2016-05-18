@@ -478,6 +478,16 @@ The temperature reading worked the same way, with **unsigned int read_temperatur
 
 	(float)(-46.85 + (175.72 * rawTemperature / (float)65536))
 
+#### A driver for LSM9DS0
+
+We would like to detect taps. To do so, we needed an accelerometer which can generate interrupts on taps. We had a LSM9DS0, so we used it. To communicate, we used I2C. In the meantime, there were a gyroscope and a magnetometer, so we used it. The driver could be found in **src/LSM9DS0.c**. To initialize the LSM9DS0, we wrote an initialization function, **uint16 init_LSM(LSM\_parameters params);**. It took the parameters to configure the LSM9DS0. There were defined in **include/LSM9DS0.h**. Then, we calibrated the gyroscope and the accelerometer with **void calLSM9DS0(LSM\_properties* prop);**, the bias were stored in LSM\_properties, in the fields **float abias[3]** and **float gbias[3]**.
+
+We wrote functions to read the accelerometer, the gyroscope, the magnetometer and even the temperature. There are : **void   readAccel(LSM\_properties* prop);**, **void   readMag(LSM\_properties* prop);**, **void   readTemp(LSM\_properties* prop);** and **void   readGyro(LSM\_properties* prop);**. These functions write the read values in the fields of LSM\_properties, in ax, ay, az, gx, gy, gz, mx, my, mz and temperature. However, these are raw values. We used functions to do the conversions : **float  calcGyro(int16 gyro);**, **float  calcAccel(int16 accel);** and **float  calcMag(int16 mag);**.
+
+All these functions were just reading and writing in registers. The register description was found in the [documentation](https://github.com/Aunsiels/Mesh_Bee/blob/master/doc/LSM9DS0.pdf). Finally, we wrote functions to configure interrupts. These interrupts can be on pin **INTG** for the gyroscpope and on pins **INT1XM** and **INT2XM** for the accelerometer and the magnetometer. The functions were **void configGyroInt(uint8 int1Cfg, uint16 int1ThsX, uint16 int1ThsY, uint16 int1ThsZ, uint8 duration);** and **void configTapInt(float threshold, int8 duration);**. They take configuration (int1Cfg was what went in the register INT1_CFG_G), thresholds and a duration for the interrupt. The tap interrupt is on **INT1XM**.
+
+We connected the LSM9DS0 to the MeshBee (3.3V, GND, SDA, SCL and INT1XM) and used the interrupt handler we defined (see next part).
+
 ### More in Depth
 
 #### Create new Tasks
@@ -547,7 +557,17 @@ Then, we had to call the Event Handler of the time cluster every second. For tha
 
 Then, we had a system to count the time in seconds.
 
-TODO, count in millisecond.
+#### Time Synchronization V2
+
+Counting in seconds was too restrictive for what we wanted to do. So we decided to rewrite all the synchronization part to be more flexible and count in milliseconds. The first thing we had to change was to use **uint64** instead of uint32. This way, we avoided overflow. In the meanwhile, we also changed the SULI library to also use uint64. The new time synchronization code was written in **src/time\_sync.c**.
+
+The use was almost the same. There was a function to initialize the variables of the time synchronization : **void init\_time\_sync(void);**. Then, it was possible to set the low part and the high part of the timestamp with **void setHighTime(uint32 time);** and **void setLowTime(uint32 time);**. We had to separate the lowest part and the highest part because for the AT commands, we were only allowed to transmit four bytes of date, half of a uint64. Then, we were able to check whether the time is synchronized or not with **int timeHasBeenSynchronised(void);** and finally, we can get current time with **uint64 getTime(void);**. All in all, we replaced all previous functions.
+
+However, we erased the timer part as we did not need to count seconds anymore : we used the SULI **suli_millis** function to keep track of the time. We still used mutex as we had concurrent accesses.
+
+As we separated the highest part and the lowest part of the timestamp, we needed to do two different AT function to set the time. ATST was replaced by **ATSH** (for Set High) and **ATSL** (for Set Low). The way it worked was exactly the same, except that it called the two functions to set the time.
+
+Once we did that, the communication protocol changed. A frame was then composed of four bytes to describe the value read, eight bytes for the timestamp and four bytes for the data, which was then totally raw (whereas before it was a string). So, the size was fixed.
 
 #### Interrupt From a Button
 
@@ -640,6 +660,10 @@ We wrote a general function to read a frame : **api_read_frame()**. There could 
 
 So, the new protocol looked like that : 4 bytes to identify the value read, 4 bytes for the time stamp and the rest for the value. We had a time stamp. To share the time, we broadcast an AT command, **ATST**. This was done thanks to the function **send_time()**, which sent the time in second. Finally, we wrote a function to request the nodes on the network : **request_topo()**. We did not have to wait for the result as we had done before : each module answered with a frame which was decrypted when received. The mac addresses were stored in an attribute of MeshBee, and they were all sent with **send_mac_addresses()**.
 
+Once we changed the time synchronization part, the protocol became : four bytes to describe the value read, eight bytes for the timestamp and four bytes for the data, which was then totally raw (whereas before it was a string). So, the size was fixed (see above). The **send_time()** function then sent time in milliseconds. **WARNING** : the way bytes were sent wass the opposite of the way it was in memory. This was because the **endianess** was not the same on the MeshBee (Big Endian) and the computer.
+
+TODO, check endianess.
+
 As the server was also on the Raspberry Pi, we just had to send our requests to the localhost domain, port 9000. Then to send all the mac addresses, we opened the URL **http://localhost:9000/updatesensors?s=** , followed by all MAC addresses.
 
 Finally, we wrote a main function to call all our functions. This is done in an infinite loop. It just called api_read_frame, and from time to time request to read the network topology and send a time stamp.
@@ -677,3 +701,5 @@ The first communication we did with the server was with data directly in the HTT
  ### Charts
 
  To print the charts, we used a JavaScript library, **Highcharts**. The chart was then loaded when the user clicked on a given device.
+
+ ![homepage](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/homepage.png)
