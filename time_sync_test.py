@@ -323,7 +323,7 @@ def main():
     last_time = time.time()
     counter = 0
     print("Try ", counter)
-    while counter < 8*60:
+    while counter < 4*60:
         if time.time() - last_time > 60:
             # Send BTN0
             #GPIO.output(btn, False)
