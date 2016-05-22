@@ -170,6 +170,34 @@ uint64 getTime(void)
     return res;
 }
 
+uint64 getTimeModified(uint64 read_time)
+{
+	static double sum_cross  = 0;
+    static double sum_square = 0;
+    uint64 res;
+	vLockZCLMutex();
+    uint64 x = suli_millis() - local_start_time;
+    uint64 y = read_time - start_time;
+    sum_cross  += x * y;
+    sum_square += x * x;
+    if (sum_square != 0) {
+    	double a = sum_cross / sum_square;
+    	uart_printf("a : ");
+    	suli_uart_write_float(NULL, NULL, a, 6);
+    	uart_printf("\r\n");
+    	double modif = x * a;
+    	suli_uart_write_float(NULL, NULL, modif, 6);
+    	uart_printf("\r\n");
+    	suli_uart_write_float(NULL, NULL, x, 6);
+    	uart_printf("\r\n");
+        res = modif + start_time;
+        suli_uart_printf(NULL, NULL, "res : %ld\r\n", ((int *) &res)[1]);
+        suli_uart_printf(NULL, NULL, "res true : %ld\r\n", ((int *) &read_time)[1]);
+    }
+    vUnlockZCLMutex();
+    return res;
+}
+
 /****************************************************************************
  *
  * NAME: setHighTime

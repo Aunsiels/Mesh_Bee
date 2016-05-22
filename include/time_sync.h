@@ -8,5 +8,6 @@ int timeHasBeenSynchronised(void);
 uint64 getTime(void);
 void setHighTime(uint32 time);
 void setLowTime(uint32 time);
+uint64 getTimeModified(uint64 read_time);
 
 #endif

@@ -214,5 +214,6 @@ float  calcAccel(int16 accel);
 float  calcMag(int16 mag);
 void   configGyroInt(uint8 int1Cfg, uint16 int1ThsX, uint16 int1ThsY, uint16 int1ThsZ, uint8 duration);
 void   configTapInt(float threshold, int8 limit);
+void   setTapThd(float threshold);
 
 #endif

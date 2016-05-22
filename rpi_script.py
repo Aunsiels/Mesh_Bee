@@ -142,6 +142,16 @@ class MeshBee:
         self.meshbee.write(unicode(message))
         self.meshbee.flush()
 
+    def read_parameters(self):
+        tosend = "http://localhost:9000/parameters"
+        f = urllib2.urlopen(tosend)
+        parsed_json = json.loads(f.read())
+        acc_thd_temp = parsed_json["accthd"]
+        if self.acc_thd != acc_thd_temp:
+            self.acc_thd = acc_thd_temp
+            send_acc_thd(acc_thd_temp)
+        f.close()
+
     def decrypt_message(self,  data_type, id_sensor, data, time):
         """decrypt_message decrypt a message coming from a sensor
         and send the information to the server.
@@ -207,6 +217,23 @@ class MeshBee:
         packet[7] = chr((time & (0xff << (8 * 6))) >> (8 * 6))
         packet[8] = chr((time & (0xff << (8 * 5))) >> (8 * 5))
         packet[9] = chr((time & (0xff << (8 * 4))) >> (8 * 4))
+        packet[-1] = chr(sum(map(lambda x : ord(x), packet[3:-1])) & 0xff)
+        self.meshbee.write(''.join(packet))
+        self.meshbee.flush()
+
+    def read_parameters(self):
+        tosend = "http://localhost:9000/parameters"
+        f = urllib2.urlopen(tosend)
+        parsed_json = json.loads(f.read())
+        self.acc_thd = parsed_json[""]
+
+    def send_acc_thd(self, threshold):
+        """send_acc_thd Sends the accelerometer threshold"""
+        packet = [chr(0x7e), chr(0x07), chr(0x17), chr(0xec), chr(0x02), chr(0x83), chr(0x00), chr(0x00), chr(0x00), chr(0x00), chr(0x6e)]
+        packet[6] = chr((threshold & (0xff << (8 * 3))) >> (8 * 3))
+        packet[7] = chr((threshold & (0xff << (8 * 2))) >> (8 * 2))
+        packet[8] = chr((threshold & (0xff << (8 * 1))) >> (8 * 1))
+        packet[9] = chr((threshold & (0xff << (8 * 0))) >> (8 * 0))
         packet[-1] = chr(sum(map(lambda x : ord(x), packet[3:-1])) & 0xff)
         self.meshbee.write(''.join(packet))
         self.meshbee.flush()

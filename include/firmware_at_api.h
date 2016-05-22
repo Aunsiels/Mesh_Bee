@@ -73,6 +73,7 @@ typedef enum
 	ATSH = 0x80,  //Set High time of a node
     ATRT = 0x81,  //Read time	
     ATSL = 0x82,  // Set Low time
+    ATSA = 0x83,  // Set Acceleration Threshold
 }teAtIndex;
 
 /* API mode AT return value */

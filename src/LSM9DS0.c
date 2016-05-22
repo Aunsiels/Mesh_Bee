@@ -556,3 +556,12 @@ void configTapInt(float threshold, int8 limit){
 	// Click time limit
 	xmWriteByte(TIME_LIMIT, limit & 0xFF);
 }
+
+/* Set the threshold of the Tap */
+void setTapThd(float threshold)
+{
+	// Threshold
+	int ths = (int) (threshold / parameters.aRes);
+	if (ths > 0xFF) ths = 0xFF;
+	xmWriteByte(CLICK_THS, (int16) (ths & 0x7F));
+}

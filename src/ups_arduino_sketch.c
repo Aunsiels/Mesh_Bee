@@ -46,6 +46,13 @@ void arduino_setup(void)
 {
 #ifdef TARGET_ROU
     setNodeState(E_MODE_MCU);
+
+    // Set period loop
+    char * aj = "ATMF1";
+    char * aj2 = "ATMF";
+    API_i32AtCmdProc(aj, 5);
+    // Prints the value of the loop
+    API_i32AtCmdProc(aj2, 4);
 	
 	suli_pin_init(&led_pin, D18);
 	suli_pin_dir(&led_pin, HAL_PIN_OUTPUT);
@@ -59,7 +66,7 @@ void arduino_setup(void)
 	vAHI_DioSetDirection(mask, 0);
 	vAHI_DioInterruptEdge(0, mask); // First argument for rising edge
 	vAHI_DioInterruptEnable(mask, 0);
-	/*LSM_parameters params;
+	LSM_parameters params;
     params.gScl = G_SCALE_245DPS;
     params.aScl = A_SCALE_2G;
     params.mScl = M_SCALE_2GS;
@@ -72,7 +79,7 @@ void arduino_setup(void)
     configTapInt(1.5, 16);
 
     calLSM9DS0(&prop);
-    suli_uart_printf(NULL, NULL, "gbias : ");
+    /*suli_uart_printf(NULL, NULL, "gbias : ");
     suli_uart_write_float(NULL, NULL, prop.gbias[0], 10);
     suli_uart_printf(NULL, NULL, "\r\n");
     suli_uart_write_float(NULL, NULL, prop.gbias[1], 10);
@@ -97,14 +104,14 @@ void arduino_loop(void)
     vDelayMsec(100);
     suli_uart_printf(NULL, NULL, "random:%d\r\n", random());
 #elif TARGET_ROU
-    unsigned int hum = 0;
+    //unsigned int hum = 0;
 
 	//hum = read_temperature();
     //hum = random();
     //hum = suli_analog_read(&lumi_pin);
-	hum = suli_analog_read(&temp_pin);	
+	//hum = suli_analog_read(&temp_pin);	
     
-    send_frame("TMPI", hum);
+    //send_frame("TMPI", hum);
     //send_frame("RAND", hum);
 	//send_frame("LUMI", hum);
     //send_frame("TEMP", hum);
@@ -139,7 +146,6 @@ void arduino_loop(void)
     suli_uart_write_float(NULL, NULL, calcMag(prop.mz), 3);
     suli_uart_printf(NULL, NULL, "\r\n");*/
 
-	vDelayMsec(3000);
 #else
     /* Finish user job */
     static jobCnt = 0;

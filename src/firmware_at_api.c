@@ -38,6 +38,7 @@
 #include "firmware_sleep.h"
 #include "suli.h"
 #include "time_sync.h"
+#include "LSM9DS0.h"
 
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
@@ -62,6 +63,7 @@ int API_listAllNodes_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uin
 int API_showInfo_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 int API_setHighTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 int API_setLowTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
+int API_setAccThd_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr);
 
 int AT_printTT(uint16 *regAddr);
 int AT_readTime(uint16 *regAddr);
@@ -231,6 +233,8 @@ static AT_Command_ApiMode_t atCommandsApiMode[] =
 	{ "ATSH", ATSH, NULL, API_setHighTime_CallBack},
 
     { "ATSL", ATSL, NULL, API_setLowTime_CallBack},
+
+    { "ATSA", ATSA, NULL, API_setAccThd_CallBack},
 
 };
 
@@ -1566,7 +1570,16 @@ int API_setHighTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint
 {
 	uint32 time;
 	memcpy(&time, reqApiSpec->payload.localAtReq.value, 4);
-	setHighTime(time);
+    // For drift estimation, only compare less significative bytes
+    // Take care endianess, big endian
+	if (timeHasBeenSynchronised()) {
+        uint64 complete_time = (getTime() & 0xFFFFFFFF00000000) + time;
+        uint64 current_time = getTimeModified(complete_time);
+        uint32 * ptr_current_time = (uint32 *) &current_time;
+        send_frame("DRFT", time - ptr_current_time[1]);
+    } else {
+        setHighTime(time);
+    }
 	
     return OK;
 }
@@ -1591,6 +1604,29 @@ int API_setLowTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint1
     memcpy(&time, reqApiSpec->payload.localAtReq.value, 4);
     setLowTime(time);
     
+    return OK;
+}
+
+/****************************************************************************
+*
+* NAME: API_setAccThd_CallBack
+*
+* DESCRIPTION:
+* Set the acceleration threshold
+*
+*
+* PARAMETERS: Name         RW  Usage
+*
+* RETURNS:
+* int
+* apiSpec, returned tsApiSpec Frame
+*
+****************************************************************************/
+int API_setAccThd_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16 *regAddr)
+{
+    float thd;
+    memcpy(&thd, reqApiSpec->payload.localAtReq.value, 4);
+    setTapThd(thd);
     return OK;
 }
 
