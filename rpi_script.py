@@ -13,6 +13,12 @@ def float2bits(n_float):
     s = struct.pack('>f', n_float)
     return struct.unpack('>l', s)[0]
 
+def signed(nbr):
+    if nbr &  0x80000000:
+        return -(0x7FFFFFFF - (nbr & 0x7FFFFFFF) + 1)
+    else :
+        return nbr
+
 class MeshBee:
     """MeshBee: To communicate with a MeshBee"""
 
@@ -169,7 +175,11 @@ class MeshBee:
         :param time the time of the measure in milliseconds
         """
         tosend = "http://localhost:9000/measuredata?id=" + id_sensor
-        tosend = tosend + "&dataType=" + data_type  + "&data=" + str(data)
+        tosend = tosend + "&dataType=" + data_type
+        if data_type == "DRFT":
+            tosend = tosend + "&data=" + str(signed(data))
+        else:
+            tosend = tosend + "&data=" + str(data)
         tosend = tosend + "&time=" + str(time)
         print("Time read ", time)
         print("current time", int((datetime.utcnow() - datetime(1970,1,1)).total_seconds() * 1000))
