@@ -1,4 +1,4 @@
-@(title: String, hosts: List[(String, String)])
+@(title: String, hosts: List[(String, String)], accthd : Float)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -101,6 +101,11 @@
 												</tbody>
 											</table>
 										</div>
+                                        <br>
+                                        <br>
+                                        <p> Accelerometer Threshold <p>
+                                        <input type="range" min="0" max="2" value="@accthd" step="0.1" onchange="showValue(this.value)" />
+                                        <span id="range">@accthd</span>
 									  </div>
 									</div>
 									<!-- /.panel-body -->
@@ -185,6 +190,25 @@ $(document).ready(function() {
 
 	<!-- Custom Theme JavaScript -->
 	<script src="@routes.Assets.at("js/sb-admin-2.js")"></script>
+    <script type="text/javascript">
+    var accthdurl = "http://localhost:9000/setaccthd?thd="
+    function httpGetAsync(theUrl, callback)
+    {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
+                callback(xmlHttp.responseText);
+            }
+        };
+        xmlHttp.open("GET", theUrl, true); // true for asynchronous
+        xmlHttp.send(null);
+    }
+    function showValue(newValue)
+    {
+        httpGetAsync(accthdurl + newValue, function(response){});
+        document.getElementById("range").innerHTML=newValue;
+    }
+    </script>
 </body>
 
 </html>

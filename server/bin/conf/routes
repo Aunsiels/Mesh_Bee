@@ -29,3 +29,7 @@ GET     /params                     controllers.HomeController.params
 GET     /sensors					controllers.HomeController.listSensors
 
 GET     /updatesensors              controllers.HomeController.updateSensors(s : String)
+
+GET     /setaccthd                 controllers.HomeController.setAccThd(thd : Float)
+
+GET     /parameters                controllers.HomeController.getParameters

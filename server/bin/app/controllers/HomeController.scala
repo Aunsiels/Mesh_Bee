@@ -13,7 +13,7 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.Play.current
 import play.api.i18n.Messages.Implicits._
-import play.api.libs.json.{JsNull,Json,JsString,JsValue}
+import play.api.libs.json._
 
 
 /**
@@ -25,7 +25,8 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
 
   /* Main Page that will print the graphs */
   def index = Action {
-    Ok(views.html.main("MAIN", HomeController.names.toList))
+    Ok(views.html.main("MAIN", HomeController.names.toList,
+      HomeController.accThd))
   }
 
   /* Adds a new measure in the database */
@@ -235,6 +236,22 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     Ok("")
   }
 
+  /* Set the accelerometer value */
+  def setAccThd(thd : Float) = Action {
+    this.synchronized{
+      HomeController.accThd = thd
+    }
+    Ok("")
+  }
+
+  /* Returns the Json for parameters */
+  def getParameters = Action {
+    val json : JsValue = JsObject(Seq(
+      "accthd" -> JsNumber(HomeController.accThd)
+    ))
+    Ok(json)
+  }
+
 }
 
 /* Describe the state of a sensor */
@@ -258,4 +275,5 @@ object HomeController {
   var classes = Map[String, String]()
   var names = Map[String, String]()
   var status = Map[String, SensorState.Value]()
+  var accThd : Float = 0;
 }
