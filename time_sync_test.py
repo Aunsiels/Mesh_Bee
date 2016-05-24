@@ -330,15 +330,15 @@ def main():
     last_time = time.time()
     counter = 0
     print("Try ", counter)
-    while counter < 2 * 60:
-        if time.time() - last_time > 30:
+    while counter < 60 :
+        if time.time() - last_time > 60:
             # Send BTN0
-            GPIO.output(btn, False)
-            sleep(0.05)
-            GPIO.output(btn, True)
+            #GPIO.output(btn, False)
+            #sleep(0.05)
+            #GPIO.output(btn, True)
 
             # For drift
-            #bee.send_time()
+            bee.send_time()
 
             last_time = time.time()
             counter += 1
