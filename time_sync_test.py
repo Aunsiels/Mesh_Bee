@@ -160,7 +160,7 @@ class MeshBee:
         :param data the data measured
         :param time the time of the measure in milliseconds
         """
-        if data_type == "BTN0" or data_type == "DRFT":
+        if data_type == "DRFT":
             if id_sensor in self.read_values.keys():
                # Compare two meshbees
                #self.read_values[id_sensor].append(str(time))
@@ -169,6 +169,13 @@ class MeshBee:
             else:
                 #self.read_values[id_sensor] =  [str(time)]
                 self.read_values[id_sensor] =  [str(signed(data))]
+        elif data_type == "BTN0":
+            if id_sensor in self.read_values.keys():
+               # Compare two meshbees
+               self.read_values[id_sensor].append(str(data))
+            else:
+                #self.read_values[id_sensor] =  [str(time)]
+                self.read_values[id_sensor] =  [str(data)]
 
     def checksum(self, check, payload):
         """checksum Check the payload
@@ -323,7 +330,7 @@ def main():
     last_time = time.time()
     counter = 0
     print("Try ", counter)
-    while counter < 4*60:
+    while counter < 60 :
         if time.time() - last_time > 60:
             # Send BTN0
             #GPIO.output(btn, False)

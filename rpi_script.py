@@ -6,6 +6,18 @@ from datetime import datetime
 import serial
 import urllib2
 from time import sleep
+import json
+import struct
+
+def float2bits(n_float):
+    s = struct.pack('>f', n_float)
+    return struct.unpack('>l', s)[0]
+
+def signed(nbr):
+    if nbr &  0x80000000:
+        return -(0x7FFFFFFF - (nbr & 0x7FFFFFFF) + 1)
+    else :
+        return nbr
 
 class MeshBee:
     """MeshBee: To communicate with a MeshBee"""
@@ -17,6 +29,7 @@ class MeshBee:
         # Will contain mac addresses read when requesting the topologie
         self.mac_adresses = []
         self.current_mode = ""
+        self.acc_thd = 0.
 
     def check_at_mode(self):
         """check_at_mode Check if we are in at mode"""
@@ -149,7 +162,7 @@ class MeshBee:
         acc_thd_temp = parsed_json["accthd"]
         if self.acc_thd != acc_thd_temp:
             self.acc_thd = acc_thd_temp
-            send_acc_thd(acc_thd_temp)
+            self.send_acc_thd (acc_thd_temp)
         f.close()
 
     def decrypt_message(self,  data_type, id_sensor, data, time):
@@ -162,7 +175,11 @@ class MeshBee:
         :param time the time of the measure in milliseconds
         """
         tosend = "http://localhost:9000/measuredata?id=" + id_sensor
-        tosend = tosend + "&dataType=" + data_type  + "&data=" + str(data)
+        tosend = tosend + "&dataType=" + data_type
+        if data_type == "DRFT":
+            tosend = tosend + "&data=" + str(signed(data))
+        else:
+            tosend = tosend + "&data=" + str(data)
         tosend = tosend + "&time=" + str(time)
         print("Time read ", time)
         print("current time", int((datetime.utcnow() - datetime(1970,1,1)).total_seconds() * 1000))
@@ -221,14 +238,9 @@ class MeshBee:
         self.meshbee.write(''.join(packet))
         self.meshbee.flush()
 
-    def read_parameters(self):
-        tosend = "http://localhost:9000/parameters"
-        f = urllib2.urlopen(tosend)
-        parsed_json = json.loads(f.read())
-        self.acc_thd = parsed_json[""]
-
-    def send_acc_thd(self, threshold):
+    def send_acc_thd(self, thd):
         """send_acc_thd Sends the accelerometer threshold"""
+        threshold = float2bits(thd)
         packet = [chr(0x7e), chr(0x07), chr(0x17), chr(0xec), chr(0x02), chr(0x83), chr(0x00), chr(0x00), chr(0x00), chr(0x00), chr(0x6e)]
         packet[6] = chr((threshold & (0xff << (8 * 3))) >> (8 * 3))
         packet[7] = chr((threshold & (0xff << (8 * 2))) >> (8 * 2))
@@ -329,10 +341,12 @@ def main():
     bee = MeshBee()
     bee.to_api_mode()
     bee.send_time()
+    bee.read_parameters()
     while True:
-        if time.time() - last_time > 30:
+        if time.time() - last_time > 10:
             bee.send_time()
             bee.request_topo()
+            bee.read_parameters()
             last_time = time.time()
         bee.api_read_frame()
     return 0
