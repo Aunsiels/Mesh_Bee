@@ -562,6 +562,7 @@ void setTapThd(float threshold)
 {
 	// Threshold
 	int ths = (int) (threshold / parameters.aRes);
+	uart_printf("THS : %D\r\n", ths);
 	if (ths > 0xFF) ths = 0xFF;
 	xmWriteByte(CLICK_THS, (int16) (ths & 0x7F));
 }

@@ -674,10 +674,13 @@ PUBLIC void deleteStackPDM()
 {
     tsDevice backup;
     memcpy(&backup, &g_sDevice, sizeof(backup));
+    float correction = getTimeCorrection();
     PDM_vDelete();
     PDM_eLoadRecord(&g_sDevicePDDesc, REC_ID1, &g_sDevice, sizeof(g_sDevice), FALSE);
+    init_time_sync();
     memcpy(&g_sDevice, &backup, sizeof(backup));
     PDM_vSaveRecord(&g_sDevicePDDesc);
+    setTimeCorrection(correction);
 }
 
 /****************************************************************************
@@ -852,9 +855,6 @@ PUBLIC void node_vInitialise(void)
 #endif
     }
     /* AT mode don't need init */
-	
-	init_time_sync();
-	
 }
 
 

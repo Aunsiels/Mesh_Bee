@@ -72,6 +72,8 @@ static const double pow10[] = { 1, 10, 100, 1000, 10000, 100000, 1000000,
 /***        Exported Functions                                            ***/
 /****************************************************************************/
 
+IO_T pin = D1;
+
 /*
  * initialize hardware
  * e.g. timer for millis/micros/pulseIn

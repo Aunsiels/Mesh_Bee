@@ -1,5 +1,10 @@
 #include "time_sync.h"
 #include "suli.h"
+#include "common.h"
+
+#define N_SAMPLES 10
+
+static PDM_tsRecordDescriptor   g_correction;
 
 /*
  * LOCAL VARIABLES AND FUNCTIONS
@@ -10,10 +15,12 @@ void vUnlockZCLMutex(void);
 void vLockZCLMutex(void);
 void change_time(uint32 time, int position);
 
-static int high_part_read      = 0;
-static int low_part_read       = 0;
-static uint64 start_time       = 0;
-static uint64 local_start_time = 0;
+static volatile int    high_part_read      = 0;
+static volatile int    low_part_read       = 0;
+static volatile uint64 start_time       = 0;
+static volatile uint64 local_start_time = 0;
+static volatile float correction       = 0.f;
+static IO_T            pin;
 
 /*
  * LOCAL DEFINITIONS
@@ -124,6 +131,16 @@ void init_time_sync(void)
     start_time       = 0;
     local_start_time = 0;
     vUnlockZCLMutex();
+    // Load coefficient parameter
+    PDM_eLoadRecord(&g_correction, REC_ID2, &correction, sizeof(correction), FALSE);
+    suli_pin_init(&pin, D1);
+    suli_pin_dir(&pin, HAL_PIN_INPUT);
+    suli_pin_init(&pin, D18);
+    suli_pin_dir(&pin, HAL_PIN_INPUT);
+    uint32 mask = (1 << D1);
+    vAHI_DioSetDirection(mask, 0);
+    vAHI_DioInterruptEdge(0, mask); // First argument for rising edge
+    vAHI_DioInterruptEnable(mask, 0);
 }
 
 /****************************************************************************
@@ -165,38 +182,80 @@ int timeHasBeenSynchronised(void)
 uint64 getTime(void)
 {
 	vLockZCLMutex();
-	uint64 res = suli_millis() - local_start_time + start_time;
+    int d_temp = suli_millis() - local_start_time;
+    int delta = d_temp / correction;
+	uint64 res = delta + start_time;
     vUnlockZCLMutex();
     return res;
 }
 
-uint64 getTimeModified(uint64 read_time)
+/*uint64 getTimeModified(uint64 read_time)
 {
-	static double sum_cross  = 0;
-    static double sum_square = 0;
+	static uint64 xi[N_SAMPLES];
+    static uint64 yi[N_SAMPLES];
+    static int count            = 0;
+    static double a             = 0;
+    static double b             = 0;
+
+    int i = 0;
+
     uint64 res;
+
 	vLockZCLMutex();
     uint64 x = suli_millis() - local_start_time;
-    uint64 y = read_time - start_time;
-    sum_cross  += x * y;
-    sum_square += x * x;
-    if (sum_square != 0) {
-    	double a = sum_cross / sum_square;
-    	uart_printf("a : ");
-    	suli_uart_write_float(NULL, NULL, a, 6);
-    	uart_printf("\r\n");
-    	double modif = x * a;
-    	suli_uart_write_float(NULL, NULL, modif, 6);
-    	uart_printf("\r\n");
-    	suli_uart_write_float(NULL, NULL, x, 6);
-    	uart_printf("\r\n");
-        res = modif + start_time;
-        suli_uart_printf(NULL, NULL, "res : %ld\r\n", ((int *) &res)[1]);
-        suli_uart_printf(NULL, NULL, "res true : %ld\r\n", ((int *) &read_time)[1]);
+    if (count == N_SAMPLES) {
+        //Compute a and b
+        double x_mean = 0.;
+        double y_mean = 0.;
+        for(i = 0; i < N_SAMPLES; i++){
+            x_mean += xi[i];
+            y_mean += yi[i];
+        }
+        x_mean /= N_SAMPLES;
+        y_mean /= N_SAMPLES;
+
+        double top    = 0.;
+        double bottom = 0.;
+
+        for (i = 0; i < N_SAMPLES; i++){
+            double temp = (xi[i] - x_mean);
+            top += temp * (yi[i] - y_mean);
+            bottom += temp * temp;
+        }
+
+        a = top / bottom;
+        b = y_mean - a * x_mean;
+
+        count = 0;
+    } else if (count < N_SAMPLES) {
+        uint64 y = read_time - start_time;
+        xi[count] = x;
+        yi[count] = y;
+        count++;
     }
+
+    if (a == 0) return read_time;
+
+    suli_uart_printf(NULL, NULL, "a : ");
+    suli_uart_write_float(NULL, NULL, a, 6);
+    suli_uart_printf(NULL, NULL, "\r\n");
+
+    suli_uart_printf(NULL, NULL, "b : ");
+    suli_uart_write_float(NULL, NULL, b, 6);
+    suli_uart_printf(NULL, NULL, "\r\n");
+
+    double modif = x * a + b;
+    suli_uart_write_float(NULL, NULL, modif, 6);
+    suli_uart_printf(NULL, NULL, "\r\n");
+    suli_uart_write_float(NULL, NULL, x, 6);
+    suli_uart_printf(NULL, NULL, "\r\n");
+    res = modif + start_time;
+    suli_uart_printf(NULL, NULL, "res : %ld\r\n", ((int *) &res)[1]);
+    suli_uart_printf(NULL, NULL, "res true : %ld\r\n", ((int *) &read_time)[1]);
+    
     vUnlockZCLMutex();
     return res;
-}
+}*/
 
 /****************************************************************************
  *
@@ -235,3 +294,41 @@ void setLowTime(uint32 time)
 {
     change_time(time, 0);
 }
+
+/****************************************************************************
+ *
+ * NAME: setTimeCorrection
+ *
+ * DESCRIPTION:
+ * Set the correction parameter
+ *
+ * PARAMETERS:
+ *  corr : the correction
+ *
+ * RETURNS:
+ * void
+ *
+ ****************************************************************************/
+ void setTimeCorrection(float corr)
+ {
+    correction = corr;
+    PDM_vSaveRecord(&g_correction);
+ }
+
+
+/****************************************************************************
+ *
+ * NAME: getCorrection
+ *
+ * DESCRIPTION:
+ * Get the correction parameter
+ *
+ *
+ * RETURNS:
+ * the correction
+ *
+ ****************************************************************************/
+ float getTimeCorrection()
+ {
+    return correction;
+ }

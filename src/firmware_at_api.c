@@ -1573,8 +1573,8 @@ int API_setHighTime_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint
     // For drift estimation, only compare less significative bytes
     // Take care endianess, big endian
 	if (timeHasBeenSynchronised()) {
-        uint64 complete_time = (getTime() & 0xFFFFFFFF00000000) + time;
-        uint64 current_time = getTimeModified(complete_time);
+        //uint64 complete_time = (getTime() & 0xFFFFFFFF00000000) + time;
+        uint64 current_time = getTime();//getTimeModified(complete_time);
         uint32 * ptr_current_time = (uint32 *) &current_time;
         send_frame("DRFT", time - ptr_current_time[1]);
     } else {
@@ -1626,6 +1626,10 @@ int API_setAccThd_CallBack(tsApiSpec *reqApiSpec, tsApiSpec *respApiSpec, uint16
 {
     float thd;
     memcpy(&thd, reqApiSpec->payload.localAtReq.value, 4);
+    //TODO DEBUG
+    suli_uart_printf(NULL, NULL, "THD : ");
+    suli_uart_write_float(NULL, NULL, thd, 3);
+    suli_uart_printf(NULL, NULL, "\r\n");
     setTapThd(thd);
     return OK;
 }

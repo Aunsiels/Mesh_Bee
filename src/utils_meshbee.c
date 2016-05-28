@@ -6,21 +6,39 @@
 #include "firmware_aups.h"
 #include "time_sync.h"
 
+#define PERIOD 1000.f
+
 /* Interrupt handler to catch interrupts from the System Controller */
 OS_ISR(sysctrl_callback){
 	// To remember the last time it was call and avoid to many calls
-	static uint64 last_D0 = 0;
+	static uint64 last_D0  = 0;
+	static uint64 last_D1  = 0;
+	static float count_D1 = 0;
+	const IO_T pin_in = D18;
+	uint64 entry_time = suli_millis();
 	
 	uint32 status = u32AHI_DioInterruptStatus();
 	//We check if the callback was called by D0
     if (status & (1 << D0)){
 		//To avoid too many interrupts
-		if (suli_millis() - last_D0 > 100) {
-			last_D0 = suli_millis();
-			suli_uart_printf(NULL, NULL, "Interrupt !\r\n");
-			//Send a message to signal the event
-			send_frame("BTN0", 1);	
+		//if (suli_millis() - last_D0 > 100) {
+		last_D0 = entry_time;
+		suli_uart_printf(NULL, NULL, "Interrupt !\r\n");
+		//Send a message to signal the event
+		send_frame("BTN0", ((uint32 *) &last_D0)[1]);	
+		//}
+	} else if (status & (1 << D1)){
+		if (!suli_pin_read(&pin_in)) return;
+		if (last_D1 == 0) {
+			last_D1 = entry_time;
+		} else {
+            float correction = (1. + (entry_time - last_D1) / PERIOD / count_D1) / 2.0;
+            setTimeCorrection(correction);
+            suli_uart_printf(NULL, NULL, "Correction : ");
+            suli_uart_write_float(NULL, NULL, (float) correction, 10);
+            suli_uart_printf(NULL, NULL, "\r\n");
 		}
+		count_D1++;
 	}
 }
 

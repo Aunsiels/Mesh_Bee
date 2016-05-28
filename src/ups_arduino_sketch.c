@@ -31,6 +31,7 @@
 #include "humidity.h"
 #include "utils_meshbee.h"
 #include "LSM9DS0.h"
+#include "time_sync.h"
 
 IO_T led_pin;
 
@@ -48,9 +49,9 @@ void arduino_setup(void)
     setNodeState(E_MODE_MCU);
 
     // Set period loop
-    char * aj = "ATMF1";
+    char * aj = "ATMF3000";
     char * aj2 = "ATMF";
-    API_i32AtCmdProc(aj, 5);
+    API_i32AtCmdProc(aj, 8);
     // Prints the value of the loop
     API_i32AtCmdProc(aj2, 4);
 	
@@ -66,7 +67,7 @@ void arduino_setup(void)
 	vAHI_DioSetDirection(mask, 0);
 	vAHI_DioInterruptEdge(0, mask); // First argument for rising edge
 	vAHI_DioInterruptEnable(mask, 0);
-	LSM_parameters params;
+	/*LSM_parameters params;
     params.gScl = G_SCALE_245DPS;
     params.aScl = A_SCALE_2G;
     params.mScl = M_SCALE_2GS;
@@ -93,6 +94,10 @@ void arduino_setup(void)
     suli_uart_write_float(NULL, NULL, prop.abias[2], 10);
     suli_uart_printf(NULL, NULL, "\r\n");*/
 
+    suli_uart_printf(NULL, NULL, "Correction parameter : ");
+    suli_uart_write_float(NULL, NULL, getTimeCorrection(), 10);
+    suli_uart_printf(NULL, NULL, "\r\n");
+
 #endif
 
     suli_analog_init(&temp_pin, TEMP);
@@ -104,6 +109,7 @@ void arduino_loop(void)
     vDelayMsec(100);
     suli_uart_printf(NULL, NULL, "random:%d\r\n", random());
 #elif TARGET_ROU
+
     //unsigned int hum = 0;
 
 	//hum = read_temperature();
@@ -120,18 +126,18 @@ void arduino_loop(void)
 	send_frame("HUMI", hum);
 	*/
 
-    /*readAccel(&prop);
-    readMag(&prop);
-    readGyro(&prop);
-    suli_uart_printf(NULL, NULL, "A : ");
+    //readAccel(&prop);
+    /*readMag(&prop);
+    readGyro(&prop);*/
+    /*suli_uart_printf(NULL, NULL, "A : ");
     suli_uart_write_float(NULL, NULL, calcAccel(prop.ax), 3);
     suli_uart_printf(NULL, NULL, " , ");
     suli_uart_write_float(NULL, NULL, calcAccel(prop.ay), 3);
     suli_uart_printf(NULL, NULL, " , ");
     suli_uart_write_float(NULL, NULL, calcAccel(prop.az), 3);
     suli_uart_printf(NULL, NULL, "\r\n");
-    suli_uart_printf(NULL, NULL, "A raw : %d %d %d\r\n", prop.ax, prop.ay, prop.az);
-    suli_uart_printf(NULL, NULL, "G : ");
+    suli_uart_printf(NULL, NULL, "A raw : %d %d %d\r\n", prop.ax, prop.ay, prop.az);*/
+    /*suli_uart_printf(NULL, NULL, "G : ");
     suli_uart_write_float(NULL, NULL, calcGyro(prop.gx), 3);
     suli_uart_printf(NULL, NULL, " , ");
     suli_uart_write_float(NULL, NULL, calcGyro(prop.gy), 3);
@@ -145,6 +151,8 @@ void arduino_loop(void)
     suli_uart_printf(NULL, NULL, " , ");
     suli_uart_write_float(NULL, NULL, calcMag(prop.mz), 3);
     suli_uart_printf(NULL, NULL, "\r\n");*/
+
+    //suli_delay_ms(3000);
 
 #else
     /* Finish user job */

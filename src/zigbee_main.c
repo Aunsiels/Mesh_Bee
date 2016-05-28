@@ -37,6 +37,8 @@
 
 #include "utils_meshbee.h"
 
+#include "time_sync.h"
+
 #ifdef RADIO_RECALIBRATION
 #include "recal.h"
 #endif
@@ -417,6 +419,9 @@ PRIVATE void vInitialiseApp(void)
 #endif
 
     DBG_vPrintf(TRACE_START, "Initialising %s node... \r\n", role);
+
+    init_time_sync();
+
     node_vInitialise();
 }
 
