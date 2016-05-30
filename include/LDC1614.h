@@ -1,6 +1,8 @@
 #ifndef LDC1614_H
 #define LDC1614_H
 
+#include "common.h"
+
 #define DATA_MSB_CH0       0x00
 #define DATA_LSB_CH0       0x01
 #define DATA_MSB_CH1       0x02
@@ -37,7 +39,11 @@
 #define MANUFACTURER_ID    0x7E
 #define DEVICE_ID          0x7F
 
-#define ADDR_LOW           0x2A
+#define ADDR_LOW           0x2A //Pin to GND
 #define ADDR_HIGH          0x2B
+
+void init_LDC1614(void);
+uint32 read_sensor0(void);
+uint32 read_sensor1(void);
 
 #endif

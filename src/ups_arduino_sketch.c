@@ -32,6 +32,7 @@
 #include "utils_meshbee.h"
 #include "LSM9DS0.h"
 #include "time_sync.h"
+#include "LDC1614.h"
 
 IO_T led_pin;
 
@@ -49,9 +50,9 @@ void arduino_setup(void)
     setNodeState(E_MODE_MCU);
 
     // Set period loop
-    char * aj = "ATMF3000";
+    char * aj = "ATMF500";
     char * aj2 = "ATMF";
-    API_i32AtCmdProc(aj, 8);
+    API_i32AtCmdProc(aj, 7);
     // Prints the value of the loop
     API_i32AtCmdProc(aj2, 4);
 	
@@ -97,6 +98,11 @@ void arduino_setup(void)
     suli_uart_printf(NULL, NULL, "Correction parameter : ");
     suli_uart_write_float(NULL, NULL, getTimeCorrection(), 10);
     suli_uart_printf(NULL, NULL, "\r\n");
+
+    suli_uart_printf(NULL, NULL, "Init LDC...\r\n");  
+    init_LDC1614();
+    suli_uart_printf(NULL, NULL, "LDC initialized\r\n");
+
 
 #endif
 
@@ -153,6 +159,11 @@ void arduino_loop(void)
     suli_uart_printf(NULL, NULL, "\r\n");*/
 
     //suli_delay_ms(3000);
+
+    uint32 sensor0 = read_sensor0();
+    uint32 sensor1 = read_sensor1();
+    suli_uart_printf(NULL, NULL, "Sensor 0 : %d\r\n", sensor0);
+    suli_uart_printf(NULL, NULL, "Sensor 1 : %d\r\n", sensor1);
 
 #else
     /* Finish user job */
