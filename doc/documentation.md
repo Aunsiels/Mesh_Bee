@@ -569,6 +569,12 @@ As we separated the highest part and the lowest part of the timestamp, we needed
 
 Once we did that, the communication protocol changed. A frame was then composed of four bytes to describe the value read, eight bytes for the timestamp and four bytes for the data, which was then totally raw (whereas before it was a string). So, the size was fixed.
 
+#### Time synchronization : drift correction
+
+Once we had the framework to synchronize the time, we wanted to check what was the error of time between all nodes of the network and the server, and how it evolves with time. At first, we were resynchronizing t
+he time every minute, so the error was low, some milliseconds. However, we tried to only synchronize time once or a limited amount of time and to see how the system evolves. The first experiment we carried out w
+as to compare the time between two MeshBees. Both of them were connected to the Raspberry Pi via wires and Zigbee. The MeshBees synchronized their internal time with the server at the beginning of the experiment. Then, the server sent at regular intervals signals via the wire which triggered an interrupt which sent the current local time. When we plotted the time difference between two MeshBees, we observed a drift.
+
 #### Interrupt From a Button
 
 To try our time synchronization, we needed a physical common event. Our first experiment was carried out with a simple button. Later, it would be replaced by an interrupt from a sensor for example. An interrupt was something which has to be scheduled by the OS, so we need to declare it in the configuration file. The document claims that they have a function a register a callback for I/O interrupts but it did not work. So, we declared an interrupt source, **System Controller"". System controller gathered different kind of interrupt among which the IO ones. Then we declared a task, **sysctrl_callback**, which was stimulated by the interrupt source we had just created.
@@ -690,15 +696,15 @@ The first communication we did with the server was with data directly in the HTT
 
  The measured date was first stored in a global variable, **measures**. We needed to take care of concurrent accesses. Later, we would change it by a database access, using MongoDB for instance. However, for development purposes, global variables are easier and easy to clean.
 
- ### Real-time Communication
+### Real-time Communication
 
  The real-time communication was done thanks to web sockets. We handled them asynchronously, thanks to actors, in **app/controllers/MyWebSocketActor.scala**. When we created a web socket, we stored it into a map, mapping. So, when a user connected to the page, it created a web socket. When a new data was received, it was transmitted to all connected users. TODO, update the list of users when closing a web socket.
 
- ### Checking Connected Devices
+### Checking Connected Devices
 
  When the python wanted to tell which devices are connected, it sent the list of all MeshBee as a String. Then, we checked if all devices were in the String. Then, the user web page refreshed regularly to keep the printed device list updated. This is done using JavaScript, directly in the HTML page, in app/views.
 
- ### Charts
+### Charts
 
  To print the charts, we used a JavaScript library, **Highcharts**. The chart was then loaded when the user clicked on a given device.
 
