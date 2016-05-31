@@ -571,9 +571,19 @@ Once we did that, the communication protocol changed. A frame was then composed 
 
 #### Time synchronization : drift correction
 
-Once we had the framework to synchronize the time, we wanted to check what was the error of time between all nodes of the network and the server, and how it evolves with time. At first, we were resynchronizing t
-he time every minute, so the error was low, some milliseconds. However, we tried to only synchronize time once or a limited amount of time and to see how the system evolves. The first experiment we carried out w
-as to compare the time between two MeshBees. Both of them were connected to the Raspberry Pi via wires and Zigbee. The MeshBees synchronized their internal time with the server at the beginning of the experiment. Then, the server sent at regular intervals signals via the wire which triggered an interrupt which sent the current local time. When we plotted the time difference between two MeshBees, we observed a drift.
+Once we had the framework to synchronize the time, we wanted to check what was the error of time between all nodes of the network and the server, and how it evolves with time. At first, we were resynchronizing the time every minute, so the error was low, some milliseconds. However, we tried to only synchronize time once or a limited amount of time and to see how the system evolves. The first experiment we carried out was to compare the time between two MeshBees. Both of them were connected to the Raspberry Pi via wires and Zigbee. The MeshBees synchronized their internal time with the server at the beginning of the experiment. Then, the server sent at regular intervals signals via the wire which triggered an interrupt which sent the current local time. When we plotted the time difference between two MeshBees, we observed a drift.
+
+![time sync two meshbee 1 hour](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/time_sync_1_hour_2meshbees.png)
+
+(the time step is 30s) We observed a small drift, of around 0.2 ms per minute. The error can become too big with after a lot of time without synchronization but synchronizing once every 45 minutes gave us an error of less than 10ms. Next, we tried to see the drift of a MeshBee with the server.
+
+![time sync meshbee server](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/time_sync_8_hours_meshbee_server.png)
+
+We observed a huge drift, more than 5 ms per minutes. At first, we did not really understand where it was from. However, as it was very linear, we tried a simple linear regression.
+
+![linear regression correction](https://raw.githubusercontent.com/Aunsiels/Mesh_Bee/master/doc/time_difference_simple_regression_server_meshbee.png)
+
+We had some noise due to Zigbee communication but the standard deviation was less than 10 ms. There was almost no drift : 0.012 ms per minutes, even if it is hard to say with the noise. The problem with this approach was that we needed to record some samples before being able to correct the read values. To remove this problem, we had to understand where the drift problem was from. We first thought it was because of a stop of the timer due to interrupts, but this was very unlikely because we used a hardware timer. We check that by using an oscilloscope and measuring the clock frequency directly. There seemed to be a small problem here. The oscilloscope was not precise enough to sure exactly sure, but it seemed than the MeshBee clocks were too fast. This hypothesis was not directly considered because an external clock was used and it was supposed to be very precise.
 
 #### Interrupt From a Button
 
