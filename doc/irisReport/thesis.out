@@ -1,17 +1,38 @@
 \BOOKMARK [1][-]{section*.1}{Abstract}{}% 1
 \BOOKMARK [1][-]{section*.2}{Zusammenfassung}{}% 2
-\BOOKMARK [1][-]{section*.4}{List of Tables}{}% 3
-\BOOKMARK [1][-]{section*.5}{List of Figures}{}% 4
-\BOOKMARK [1][-]{section*.6}{Notation}{}% 5
-\BOOKMARK [1][-]{section.1}{Introduction}{}% 6
-\BOOKMARK [1][-]{section.2}{Great Work}{}% 7
-\BOOKMARK [1][-]{section.3}{Summary and Contributions}{}% 8
-\BOOKMARK [2][-]{subsection.3.1}{Future Work}{section.3}% 9
-\BOOKMARK [1][-]{subsection.3.1}{References}{}% 10
-\BOOKMARK [1][-]{appendix.A}{Extra Stuff}{}% 11
-\BOOKMARK [1][-]{appendix.B}{Examples}{}% 12
-\BOOKMARK [2][-]{subsection.B.1}{Tables}{appendix.B}% 13
-\BOOKMARK [2][-]{subsection.B.2}{Figures}{appendix.B}% 14
-\BOOKMARK [2][-]{subsection.B.3}{Units}{appendix.B}% 15
-\BOOKMARK [2][-]{subsection.B.4}{Miscellany}{appendix.B}% 16
-\BOOKMARK [1][-]{subsection.B.4}{Epilogue}{}% 17
+\BOOKMARK [1][-]{section*.4}{List of Figures}{}% 3
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 4
+\BOOKMARK [1][-]{section.2}{Choosing a Wireless Protocol}{}% 5
+\BOOKMARK [2][-]{subsection.2.1}{The Protocols}{section.2}% 6
+\BOOKMARK [2][-]{subsection.2.2}{Comparing Protocols}{section.2}% 7
+\BOOKMARK [2][-]{subsection.2.3}{Choosing a Zigbee Chip}{section.2}% 8
+\BOOKMARK [1][-]{section.3}{Programming the Meshbee}{}% 9
+\BOOKMARK [2][-]{subsection.3.1}{Meshbee Framework}{section.3}% 10
+\BOOKMARK [2][-]{subsection.3.2}{Meshbee Hardware}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.3}{Tools}{section.3}% 12
+\BOOKMARK [2][-]{subsection.3.4}{AT mode}{section.3}% 13
+\BOOKMARK [2][-]{subsection.3.5}{MCU mode}{section.3}% 14
+\BOOKMARK [2][-]{subsection.3.6}{The SULI Library}{section.3}% 15
+\BOOKMARK [2][-]{subsection.3.7}{API MODE}{section.3}% 16
+\BOOKMARK [2][-]{subsection.3.8}{Create New Tasks}{section.3}% 17
+\BOOKMARK [2][-]{subsection.3.9}{Interrupt From a Button}{section.3}% 18
+\BOOKMARK [1][-]{section.4}{Examples}{}% 19
+\BOOKMARK [2][-]{subsection.4.1}{Hello World !}{section.4}% 20
+\BOOKMARK [2][-]{subsection.4.2}{Read a Brightness}{section.4}% 21
+\BOOKMARK [2][-]{subsection.4.3}{A Driver for HTU21D}{section.4}% 22
+\BOOKMARK [2][-]{subsection.4.4}{A Driver for LSM9DS0}{section.4}% 23
+\BOOKMARK [2][-]{subsection.4.5}{A Driver for LDC1614}{section.4}% 24
+\BOOKMARK [1][-]{section.5}{Communications}{}% 25
+\BOOKMARK [2][-]{subsection.5.1}{The Mesh Architecture}{section.5}% 26
+\BOOKMARK [2][-]{subsection.5.2}{Easy Data Packets}{section.5}% 27
+\BOOKMARK [2][-]{subsection.5.3}{A Simple Protocol}{section.5}% 28
+\BOOKMARK [2][-]{subsection.5.4}{AT commands}{section.5}% 29
+\BOOKMARK [2][-]{subsection.5.5}{From Zigbee Network to GUI}{section.5}% 30
+\BOOKMARK [1][-]{section.6}{Time Synchronization}{}% 31
+\BOOKMARK [2][-]{subsection.6.1}{First Version}{section.6}% 32
+\BOOKMARK [2][-]{subsection.6.2}{Second Version}{section.6}% 33
+\BOOKMARK [2][-]{subsection.6.3}{Correcting the Clocks}{section.6}% 34
+\BOOKMARK [1][-]{section.7}{Summary and Contributions}{}% 35
+\BOOKMARK [2][-]{subsection.7.1}{Future Work}{section.7}% 36
+\BOOKMARK [1][-]{subsection.7.1}{References}{}% 37
+\BOOKMARK [1][-]{subsection.7.1}{Epilogue}{}% 38

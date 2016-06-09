@@ -28,6 +28,7 @@
 \usepackage[thickspace,thinqspace]{SIunits}     %
 
 \usepackage{hyperref}                           % enable Hyperlinks in pdf/ps Docs
+\usepackage{listings}
 
 
 % -------------------------------------------------------------------------------------------------
@@ -49,8 +50,8 @@
 % -------------------------------------------------------------------------------------------------
 % Set names
 % -------------------------------------------------------------------------------------------------
-\renewcommand{\irisauthor}{Peter Muster}
-\renewcommand{\irisadviser}{Hugh Watts}
+\renewcommand{\irisauthor}{Julien Romero}
+\renewcommand{\irisadviser}{George Chatzipirpiridis}
 
 
 % -------------------------------------------------------------------------------------------------
@@ -66,7 +67,7 @@
 
 % Title page: set title and date preferably formatted according to
 % ISO 8601
-\iristitlepage{Superb Thesis Title}{2004-06}
+\iristitlepage{Wireless sensors network for performance monitoring}{2016}
 
 
 % This is the second part of the front matter. Pages appear with
@@ -79,7 +80,7 @@
 \markright{}
 \vspace*{\stretch{1}}
 \begin{center}
-    To some special person
+    To the world.
 \end{center}
 \vspace*{\stretch{2}}
 
@@ -102,9 +103,9 @@
 \addtocontents{toc}{\vspace{.5\baselineskip}}
 
 % List of tables
-\newpage
-\addcontentsline{toc}{section}{\protect\numberline{}{List of Tables}}
-\listoftables
+%\newpage
+%\addcontentsline{toc}{section}{\protect\numberline{}{List of Tables}}
+%\listoftables
 
 % List of figures
 \newpage
@@ -112,10 +113,10 @@
 \listoffigures
 
 % Glossary kind of chapters
-\addcontentsline{toc}{section}{\protect\numberline{}{Notation}}
-\addtocontents{toc}{\vspace{.5\baselineskip}}
-\markright{Notation}
-\include{Notation}
+%\addcontentsline{toc}{section}{\protect\numberline{}{Notation}}
+%\addtocontents{toc}{\vspace{.5\baselineskip}}
+%\markright{Notation}
+%\include{Notation}
 
 
 % This is the main part of the thesis. Pages appear with arabic numbering.
@@ -138,10 +139,10 @@
 
 
 % Appendices (if needed)
-\addtocontents{toc}{\vspace{.5\baselineskip}}
-\appendix
-\include{Appendix}
-\include{Examples}
+%\addtocontents{toc}{\vspace{.5\baselineskip}}
+%\appendix
+%\include{Appendix}
+%\include{Examples}
 
 
 % Epilogue (optional)

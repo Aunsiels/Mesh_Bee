@@ -1,4 +1,21 @@
-\contentsline {figure}{\numberline {1}{\ignorespaces IRIS logo}}{5}{figure.1}
-\contentsline {figure}{\numberline {2}{\ignorespaces Subfigure example}}{5}{figure.2}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {ETH logo}}}{5}{figure.2}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {IRIS logo}}}{5}{figure.2}
+\contentsline {figure}{\numberline {1}{\ignorespaces General Architecture}}{1}{figure.1}
+\contentsline {figure}{\numberline {2}{\ignorespaces Consumption vs Data Rate}}{4}{figure.2}
+\contentsline {figure}{\numberline {3}{\ignorespaces MeshBee Architecture}}{5}{figure.3}
+\contentsline {figure}{\numberline {4}{\ignorespaces MeshBee Hardware}}{6}{figure.4}
+\contentsline {figure}{\numberline {5}{\ignorespaces MeshBee Pin Layout}}{6}{figure.5}
+\contentsline {figure}{\numberline {6}{\ignorespaces Result ATIF}}{8}{figure.6}
+\contentsline {figure}{\numberline {7}{\ignorespaces Eclipse Configuration file}}{17}{figure.7}
+\contentsline {figure}{\numberline {8}{\ignorespaces Details Configuration}}{17}{figure.8}
+\contentsline {figure}{\numberline {9}{\ignorespaces Zoom configuration}}{18}{figure.9}
+\contentsline {figure}{\numberline {10}{\ignorespaces Zoom Interrupt}}{20}{figure.10}
+\contentsline {figure}{\numberline {11}{\ignorespaces Simple Led}}{21}{figure.11}
+\contentsline {figure}{\numberline {12}{\ignorespaces Photoresistor}}{23}{figure.12}
+\contentsline {figure}{\numberline {13}{\ignorespaces Mesh Architecture}}{26}{figure.13}
+\contentsline {figure}{\numberline {14}{\ignorespaces Pin layout Raspberry Pi}}{30}{figure.14}
+\contentsline {figure}{\numberline {15}{\ignorespaces Photo Connections}}{31}{figure.15}
+\contentsline {figure}{\numberline {16}{\ignorespaces Cutecom}}{31}{figure.16}
+\contentsline {figure}{\numberline {17}{\ignorespaces Charts}}{35}{figure.17}
+\contentsline {figure}{\numberline {18}{\ignorespaces Two meshbees drift}}{39}{figure.18}
+\contentsline {figure}{\numberline {19}{\ignorespaces Meshbee Server Drift}}{39}{figure.19}
+\contentsline {figure}{\numberline {20}{\ignorespaces Linear Regression Correction}}{40}{figure.20}
+\contentsline {figure}{\numberline {21}{\ignorespaces Wire Correction}}{41}{figure.21}
