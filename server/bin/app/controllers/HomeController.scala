@@ -24,9 +24,9 @@ import play.api.libs.json._
 class HomeController @Inject() (implicit system: ActorSystem, materializer: Materializer) extends Controller {
 
   /* Main Page that will print the graphs */
-  def index = Action {
+  def index = Action { implicit request =>
     Ok(views.html.main("MAIN", HomeController.names.toList,
-      HomeController.accThd))
+      request.session.get("connected") != None))
   }
 
   /* Adds a new measure in the database */
@@ -164,6 +164,10 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
       "name" -> text
     )(SensorParams.apply)(SensorParams.unapply))
 
+  def toSensorParams(ids : Set[String]) = {
+      ids.map(id => SensorParams(id, getName(id)))
+  }
+
 
   /* A page to modify the parameters of a sensor */
   def modifyParams = Action { implicit request =>
@@ -178,19 +182,48 @@ class HomeController @Inject() (implicit system: ActorSystem, materializer: Mate
     )
   }
 
+  val IdForm = Form(
+      mapping(
+          "id" -> text,
+          "password" -> text
+      )(Id.apply)(Id.unapply))
+
+  def log = Action { implicit request =>
+      IdForm.bindFromRequest.fold(
+          formWithErrors => {
+              BadRequest("Problem with login.")
+          },
+          id => {
+              if (id.id == "admin" && id.password == "admin")
+                  Redirect(routes.HomeController.index).withSession(
+                      "connected" -> "admin")
+              else
+                  Ok("Bad Id or Password")
+          }
+      )
+  }
+
+  def login = Action { implicit request =>
+      request.session.get("connected").map { user =>
+          Redirect(routes.HomeController.index)
+      }.getOrElse(
+          Ok(views.html.login(IdForm))
+      )
+  }
+
+  def disconnect = Action { implicit request =>
+      Redirect(routes.HomeController.index).withSession(
+          request.session - "connected")
+  }
+
   /* The page for the sensor modification */
   def params = Action { implicit request =>
-    var result = Ok("Nothing to change")
-    var SensorParamsFormFill : Form[SensorParams] = null
-    for(id <- HomeController.ids){
-      val name = getName(id)
-      /* For now, we can modify one parameter without a correct name */
-      if (name == id){
-        SensorParamsFormFill = SensorParamsForm.fill(SensorParams(id,""))
-        result = Ok(views.html.params(id, SensorParamsFormFill))
+      request.session.get("connected").map { user =>
+          Ok(views.html.params(toSensorParams(HomeController.ids),
+              SensorParamsForm, HomeController.accThd))
+      }.getOrElse{
+          Redirect(routes.HomeController.index)
       }
-    }
-    result
   }
 
   /* Get the status of a sensor */
@@ -267,6 +300,8 @@ case class Measure(date : java.util.Date, measure : Double)
 
 /* Contains information about a sensor */
 case class SensorInfo(id : String, name : String, status : SensorState.Value)
+
+case class Id(id : String, password : String)
 
 object HomeController {
   /* Some global variables , they need to be changed to database accesses */

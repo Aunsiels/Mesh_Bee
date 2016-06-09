@@ -1,4 +1,4 @@
-@(title: String, hosts: List[(String, String)], accthd : Float)
+@(title: String, hosts: List[(String, String)], admin : Boolean)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -58,6 +58,12 @@
 
 						<li>
 							<a href="/"><i class="fa fa-dashboard fa-fw"></i>Home</a>
+                            @if(admin){
+							<a href="/params"><i class="fa fa-dashboard fa-fw"></i>Parameters</a>
+							<a href="/disconnect"><i class="fa fa-dashboard fa-fw"></i>Disconnect</a>
+                            }else{
+							<a href="/login"><i class="fa fa-dashboard fa-fw"></i>Login</a>
+                            }
 						</li>
 
 					</ul>
@@ -101,13 +107,7 @@
 												</tbody>
 											</table>
 										</div>
-                                        <br>
-                                        <br>
-                                        <p> Accelerometer Threshold <p>
-                                        <input type="range" min="-1.99" max="1.99" value="@accthd" step="0.001" onchange="showValue(this.value)" />
-                                        <span id="range">@accthd</span>
-									  </div>
-									</div>
+
 									<!-- /.panel-body -->
 									<div class="panel panel-default">
 										<div class="panel-heading">
@@ -153,8 +153,7 @@ $(document).ready(function() {
 				table_content +=
 					'<tr>' +
 					'<td>' + sensor_info.id + '</td>' +
-					'<td><a href="#" onclick="javascript:show(' + "'" + sensor_info.id + "'" + ')"><b>' + sensor_info.name + '</b></a></td>' +
-					'<td>---</td>';
+					'<td><a href="#" onclick="javascript:show(' + "'" + sensor_info.id + "'" + ')"><b>' + sensor_info.name + '</b></a></td>';
 
 				if(sensor_info.status == "Active") {
 					table_content += '<td class="fa-check"><font color="green">Enabled</font></td>';
@@ -190,25 +189,6 @@ $(document).ready(function() {
 
 	<!-- Custom Theme JavaScript -->
 	<script src="@routes.Assets.at("js/sb-admin-2.js")"></script>
-    <script type="text/javascript">
-    var accthdurl = "http://localhost:9000/setaccthd?thd="
-    function httpGetAsync(theUrl, callback)
-    {
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
-                callback(xmlHttp.responseText);
-            }
-        };
-        xmlHttp.open("GET", theUrl, true); // true for asynchronous
-        xmlHttp.send(null);
-    }
-    function showValue(newValue)
-    {
-        httpGetAsync(accthdurl + newValue, function(response){});
-        document.getElementById("range").innerHTML=newValue;
-    }
-    </script>
 </body>
 
 </html>

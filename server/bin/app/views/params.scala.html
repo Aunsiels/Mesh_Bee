@@ -1,9 +1,39 @@
 @import controllers._
-@(id : String, userForm : play.api.data.Form[controllers.SensorParams])(implicit messages: Messages)
+@(sensors : Set[controllers.SensorParams], userForm : Form[controllers.SensorParams], accthd : Float)(implicit messages: Messages)
 
-@helper.form(action = routes.HomeController.modifyParams()) {
-@helper.inputText(userForm("id"), 'id -> "id", 'value -> "id")
-@helper.inputText(userForm("name"), 'id -> "name")
-@helper.inputText(userForm("cl"), 'id -> "cl")
-<button type="submit" name="action" value="edit">Save</button>
+@for(sensor <- sensors){
+    @helper.form(action = routes.HomeController.modifyParams()) {
+        <dt><label for="Id"><label>Id:</label></dt>
+        <input type="text" name="id" id="id" value="@sensor.id">
+        <dt><label for="Name"><label>Name:</label></dt>
+        <input type="text" name="name" id="name" value="@sensor.name">
+        <button type="submit" name="action" value="edit">Save</button>
+    }
 }
+
+<br>
+<br>
+<p> Accelerometer Threshold <p>
+<input type="range" min="-1.99" max="1.99" value="@accthd" step="0.001" onchange="showValue(this.value)" />
+<span id="range">@accthd</span>
+</div>
+</div>
+<script type="text/javascript">
+var accthdurl = "http://localhost:9000/setaccthd?thd="
+function httpGetAsync(theUrl, callback)
+{
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() {
+        if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
+            callback(xmlHttp.responseText);
+        }
+    };
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous
+    xmlHttp.send(null);
+}
+function showValue(newValue)
+{
+    httpGetAsync(accthdurl + newValue, function(response){});
+    document.getElementById("range").innerHTML=newValue;
+}
+</script>

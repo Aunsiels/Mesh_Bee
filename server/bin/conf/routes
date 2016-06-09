@@ -22,7 +22,7 @@ GET     /chart/:id                  controllers.HomeController.chart(id : String
 
 GET     /sensor                     controllers.HomeController.sensor
 
-POST  /params                     controllers.HomeController.modifyParams
+POST    /params                     controllers.HomeController.modifyParams
 
 GET     /params                     controllers.HomeController.params
 
@@ -30,6 +30,12 @@ GET     /sensors					controllers.HomeController.listSensors
 
 GET     /updatesensors              controllers.HomeController.updateSensors(s : String)
 
-GET     /setaccthd                 controllers.HomeController.setAccThd(thd : Float)
+GET     /setaccthd                  controllers.HomeController.setAccThd(thd : Float)
 
-GET     /parameters                controllers.HomeController.getParameters
+GET     /parameters                 controllers.HomeController.getParameters
+
+POST    /login                      controllers.HomeController.log
+
+GET     /login                      controllers.HomeController.login
+
+GET     /disconnect                 controllers.HomeController.disconnect
