@@ -1,0 +1,7 @@
+@(userForm : Form[Id])(implicit message : Messages)
+
+@helper.form(action = routes.HomeController.log()) {
+  @helper.inputText(userForm("id"))
+  @helper.inputPassword(userForm("password"))
+  <button>Submit</button>
+}
